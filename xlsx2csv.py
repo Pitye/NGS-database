@@ -10,4 +10,4 @@ for file in xlsx_list:
         path_csv = out_directory + file[0:-5] + '_' + sheet[0] + '.csv'
         df = pd.read_excel(path_xlsx, sheet, header=None)
         df.to_csv(path_csv, header=None, index=None)
-print('hotovo')    
+print('hotovo')
