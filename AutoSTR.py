@@ -36,7 +36,7 @@ csv_list_0 = os.listdir(out_directory + sheets[0] + '/')
 markers = ['D1S1656','TPOX','D2S441','D2S1338','D3S1358','D4S2408','FGA','D5S818','CSF1PO','D6S1043','D7S820','D8S1179','D9S1122','D10S1248','TH01','vWA','D12S391','D13S317','PentaE','D16S539','D17S1301','D18S51','D19S433','D20S482','D21S11','PentaD','D22S1045']
 # D19 heterozygozyty 0.6!!!!
 heterozygozity = [0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7 ]
-
+Auto_STR_Data = {'sample_name' : [], 'run_name' : [], 'gender' : [], 'genotype' : []}
 
 for file in csv_list_0:
     
@@ -65,7 +65,7 @@ for file in csv_list_0:
             if row[0] in markers:
                 sample_raw_dict[row[0]].append(row)
     
-    #select true readings to sample_dict accord to marker's heterozygozity
+    #select true readings to sample_dict according to marker's heterozygozity
     heterozygozity_place = 0            
     for marker in markers:
             
@@ -73,21 +73,28 @@ for file in csv_list_0:
         if len (sorted_markers) == 0:
             sample_dict[marker].append(['Null', 'Null', 'Null', 'Null', 'Null'])
             sample_dict[marker].append(['Null', 'Null', 'Null', 'Null', 'Null'])
-            print('a')
+            #print('a')
         if len (sorted_markers) == 1:
             sample_dict[marker].append(sorted_markers[-1])
             sample_dict[marker].append(sorted_markers[-1])
-            print('b')
+            #print('b')
         if len (sorted_markers) > 1:
             if int(sorted_markers[-2][3])/int(sorted_markers[-1][3]) > float(heterozygozity [heterozygozity_place]):
                 sample_dict[marker].append(sorted_markers[-1])
                 sample_dict[marker].append(sorted_markers[-2])
-                print(int(sorted_markers[-2][3])/int(sorted_markers[-1][3]))
+                #print(int(sorted_markers[-2][3])/int(sorted_markers[-1][3]))
             else: 
                 sample_dict[marker].append(sorted_markers[-1])
                 sample_dict[marker].append(sorted_markers[-1])
-                print(int(sorted_markers[-2][3])/int(sorted_markers[-1][3]))
-        print(marker)
-        print(sample_dict[marker][0][1])
-        print(sample_dict[marker][1][1])
-        
+                #print(int(sorted_markers[-2][3])/int(sorted_markers[-1][3]))
+        #print(marker)
+        #print(sample_dict[marker][0][1])
+        #print(sample_dict[marker][1][1])
+    
+    Auto_STR_Data['genotype'].append(sample_dict)
+
+    Auto_STR_Data['sample_name'].append (head_raw[2][1])
+    Auto_STR_Data['run_name'].append (head_raw[5][1])
+    Auto_STR_Data['gender'].append (head_raw[6][1])
+    print(Auto_STR_Data)
+    print('a')    
