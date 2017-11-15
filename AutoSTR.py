@@ -10,7 +10,7 @@ in_directory = '/Users/sweethome/Desktop/project_NGS/NGS/xlsx/'
 out_directory = '/Users/sweethome/Desktop/project_NGS/NGS/csv/'
 xml_directory = '/Users/sweethome/Desktop/project_NGS/NGS/xml_CE/'
 sheets = ['Autosomal STRs', 'Y STRs', 'X STRs', 'iSNPs']
-
+no_reads_for_validation = 400
 
 #delete all in OUT DIRECTORY
 shutil.rmtree(out_directory)
@@ -157,8 +157,13 @@ for sample_NGS in samples_NGS:
         for marker in markers:
             if marker not in list(Data_CE[sample_NGS].keys()):
                 
-                Auto_STR_Data[sample_NGS][marker][0] = Auto_STR_Data[sample_NGS][marker][0] + ['not_validated_CE']
-                Auto_STR_Data[sample_NGS][marker][1] = Auto_STR_Data[sample_NGS][marker][1] + ['not_validated_CE']
+                if int(Auto_STR_Data[sample_NGS][marker][0][3]) >= no_reads_for_validation and int(Auto_STR_Data[sample_NGS][marker][1][3]) >= no_reads_for_validation:
+                    Auto_STR_Data[sample_NGS][marker][0] = Auto_STR_Data[sample_NGS][marker][0] + ['validated_no_reads']
+                    Auto_STR_Data[sample_NGS][marker][1] = Auto_STR_Data[sample_NGS][marker][1] + ['validated_no_reads']
+                else:
+                    Auto_STR_Data[sample_NGS][marker][0] = Auto_STR_Data[sample_NGS][marker][0] + ['not_validated_CE']
+                    Auto_STR_Data[sample_NGS][marker][1] = Auto_STR_Data[sample_NGS][marker][1] + ['not_validated_CE']
+           
             
             if marker in list(Data_CE[sample_NGS].keys()):
                 genotype_NGS = [str(Auto_STR_Data[sample_NGS][marker][0][1])] + [str(Auto_STR_Data[sample_NGS][marker][1][1])]
