@@ -21,7 +21,7 @@ allele varchar(50),
 sequence varchar(500),
 avg_no_reads decimal(10,1),
 count_seq int,
-frequency decimal (2,4),
+frequency decimal (5,4),
 PRIMARY KEY (id)
 );
 
