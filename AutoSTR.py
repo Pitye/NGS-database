@@ -5,6 +5,7 @@ import csv
 import xml.etree.ElementTree as etree
 import operator
 from collections import Counter
+import MySQLdb
 
 in_directory = '/Users/sweethome/Desktop/project_NGS/NGS/xlsx/'
 out_directory = '/Users/sweethome/Desktop/project_NGS/NGS/csv/'
@@ -183,3 +184,49 @@ for sample_NGS in samples_NGS:
 
 print('Auto_STR_Head done')
 print('Auto_STR_Data done')
+
+#insert data from 'Auto_STR_Head' and 'Auto_STR_Data' to MySQL NGS_FORENSIC database (create dtbschema by querries in sql file)'
+db=MySQLdb.connect("localhost", "root", "coufalka", "NGS_FORENSIC")
+c = db.cursor()
+sample_names = (list(Auto_STR_Data.keys()))
+for sample_name in sample_names:
+    pr = Auto_STR_Head[sample_name]['Project']
+    an = Auto_STR_Head[sample_name]['Analysis']
+    ru = Auto_STR_Head[sample_name]['Run']
+    ge = Auto_STR_Head[sample_name]['Gender']
+    cr = Auto_STR_Head[sample_name]['Created']
+    nm = int(Auto_STR_Head[sample_name]['No_mismatches'])
+    
+    insert_head = "INSERT INTO Heads (sample_name, project, analysis, run, gender, created, no_mismatches) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%d')" % (sample_name, pr, an, ru, ge, cr, nm) 
+    c.execute(insert_head)
+    db.commit()
+    print(sample_name, " head done")
+    select_head_id = "SELECT id FROM Heads WHERE sample_name = '%s' AND \
+                                                 project = '%s' AND \
+                                                 analysis = '%s' AND \
+                                                 run = '%s' AND \
+                                                 gender = '%s' AND \
+                                                 created = '%s' AND \
+                                                 no_mismatches = '%d' " % (sample_name, pr, an, ru, ge, cr, nm)
+    c.execute(select_head_id)
+    head_id = int(c.fetchone()[0])
+    print (head_id)
+    for marker in markers:
+        for x in range (2):
+            al = Auto_STR_Data[sample_name][marker][x][1]
+            nr = int(Auto_STR_Data[sample_name][marker][x][3])
+            seq = Auto_STR_Data[sample_name][marker][x][4]
+            val = Auto_STR_Data[sample_name][marker][x][5]
+            insert_Auto_STR = "INSERT INTO AutoSTRdata (sample_name, marker, allele, sequence, no_reads, CE_validation, head_id) \
+            VALUES ('%s', '%s', '%s', '%s', '%d', '%s', '%d')" % (sample_name, marker, al, seq, nr, val, head_id)
+            c.execute(insert_Auto_STR)
+            db.commit()
+            print (sample_name, ' ', marker, ' done')
+
+            
+   
+            
+
+db.close()
+print('all done')    
+
