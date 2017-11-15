@@ -153,6 +153,7 @@ genotype_NGS = []
 
 #validating 
 for sample_NGS in samples_NGS:
+    no_mismatches = 0
     if sample_NGS in samples_CE:
         
         for marker in markers:
@@ -179,6 +180,9 @@ for sample_NGS in samples_NGS:
                     
                     Auto_STR_Data[sample_NGS][marker][0] = Auto_STR_Data[sample_NGS][marker][0] + ['locus_mismatch_CE']
                     Auto_STR_Data[sample_NGS][marker][1] = Auto_STR_Data[sample_NGS][marker][1] + ['locus_mismatch_CE']
+                    no_mismatches = no_mismatches + 1
+        
+        Auto_STR_Head[sample_NGS]['No_mismatches']= no_mismatches
     else:
         print(sample_NGS, ' is not in xml files')
 
