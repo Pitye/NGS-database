@@ -28,6 +28,18 @@ PRIMARY KEY (id),
 CONSTRAINT head_fk FOREIGN KEY (head_id) REFERENCES Heads(id)
 );
 
+create table NGS_FORENSIC.SNPdata(
+id INT NOT NULL AUTO_INCREMENT,
+sample_name varchar(50) NOT NULL,
+marker varchar(50) NOT NULL,
+allele varchar(50),
+no_reads int,
+validation_by_no_reads varchar(50),
+head_id int,
+PRIMARY KEY (id),
+CONSTRAINT head_SNP_fk FOREIGN KEY (head_id) REFERENCES Heads(id)
+);
+
 CREATE VIEW NGS_FORENSIC.MarkerAutoSTR AS
 SELECT m.marker,
        m.allele,
