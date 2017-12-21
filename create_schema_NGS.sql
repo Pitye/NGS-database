@@ -93,7 +93,43 @@ JOIN
    GROUP BY marker) AS n ON m.marker = n.marker
 ORDER BY marker,
          allele ;
-         
+
+CREATE VIEW NGS_FORENSIC.MarkerSNPview AS
+SELECT t1.marker,
+       t1.allele,
+       t1.avg_no_reads,
+       t1.count_allele,
+       t1.count_allele/t2.sum_count_allele AS frequency
+FROM
+  (SELECT t.allele,
+          t.marker,
+          t.validation_by_no_reads,
+          count(t.allele) AS count_allele,
+          avg(t.no_reads) AS avg_no_reads
+   FROM SNPdata AS t
+   WHERE validation_by_no_reads = 'validated_no_reads'
+   GROUP BY allele,
+            marker,
+            validation_by_no_reads ) AS t1
+JOIN
+  (SELECT t1.marker,
+          t1.validation_by_no_reads,
+          sum(t1.count_allele) AS sum_count_allele
+   FROM
+     (SELECT t.allele,
+             t.marker,
+             t.validation_by_no_reads,
+             count(t.allele) AS count_allele,
+             avg(t.no_reads) AS avg_no_reads
+      FROM SNPdata AS t
+      WHERE validation_by_no_reads = 'validated_no_reads'
+      GROUP BY allele,
+               marker,
+               validation_by_no_reads ) AS t1
+   GROUP BY marker,
+            validation_by_no_reads) AS t2 ON t1.marker = t2.marker
+ORDER BY marker,
+         allele;
          
 "or you can create table instead of view and after to do SELECT
 
