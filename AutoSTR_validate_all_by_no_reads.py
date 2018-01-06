@@ -124,6 +124,11 @@ def read_XML_file(path):
                 allele_values.append(allele_values[0])
 
             genotype[locus_name] = allele_values
+            
+            #dictionary[new_key] = dictionary.pop(old_key)
+            genotype['Y-GATA-H4'] = genotype.pop('YGATAH4')
+            genotype['DYS385a-b'] = genotype.pop('DYS385')
+            
         XML_data[specimen_id] = genotype
 
     return XML_data   
