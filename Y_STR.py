@@ -172,7 +172,7 @@ for sample_NGS_Y in samples_NGS_Y:
                     genotype_NGS_Y = genotype_NGS_Y + [str(Y_STR_Data[sample_NGS_Y][marker_Y][i][1])]
                 
                 genotype_CE = Data_CE [sample_NGS_Y][marker_Y]
-                print (sample_NGS_Y, marker_Y, genotype_CE, genotype_NGS_Y )               
+                #print (sample_NGS_Y, marker_Y, genotype_CE, genotype_NGS_Y )               
                 if genotype_CE == genotype_NGS_Y:
                     for i in range (no_alleles_Y):
                         Y_STR_Data[sample_NGS_Y][marker_Y][i] = Y_STR_Data[sample_NGS_Y][marker_Y][i] + ['validated_CE']
@@ -201,7 +201,52 @@ for sample_NGS_Y in samples_NGS_Y:
         
 print('Y_STR_Head done')
 print('Y_STR_Data done') 
-print(Y_STR_Head)
-print(Y_STR_Data) 
+#print(Y_STR_Head)
+#print(Y_STR_Data) 
 
+#insert data from 'Auto_STR_Head' and 'Auto_STR_Data' to MySQL NGS_FORENSIC database (create dtbschema by querries in sql file)'
+db=MySQLdb.connect("localhost", "root", "coufalka", "NGS_FORENSIC")
+c = db.cursor()
+sample_names_Y = (list(Y_STR_Data.keys()))
+for sample_name_Y in sample_names_Y:
+    pr = Y_STR_Head[sample_name_Y]['Project']
+    an = Y_STR_Head[sample_name_Y]['Analysis']
+    ru = Y_STR_Head[sample_name_Y]['Run']
+    ge = Y_STR_Head[sample_name_Y]['Gender']
+    cr = Y_STR_Head[sample_name_Y]['Created']
+    nm = int(Y_STR_Head[sample_name_Y]['No_mismatches_Y'])
+    
+    insert_head_Y = "INSERT INTO Heads_Y (sample_name, project, analysis, run, gender, created, no_mismatches_Y) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%d')" % (sample_name_Y, pr, an, ru, ge, cr, nm) 
+    c.execute(insert_head_Y)
+    db.commit()
+    print(sample_name_Y, " head_Y done")
+    select_head_Y_id = "SELECT id FROM Heads_Y WHERE sample_name = '%s' AND \
+                                                 project = '%s' AND \
+                                                 analysis = '%s' AND \
+                                                 run = '%s' AND \
+                                                 gender = '%s' AND \
+                                                 created = '%s' AND \
+                                                 no_mismatches_Y = '%d' " % (sample_name_Y, pr, an, ru, ge, cr, nm)
+    c.execute(select_head_Y_id)
+    head_Y_id = int(c.fetchone()[0])
+    print (head_Y_id)
+    for marker_Y in markers_Y:
+        no_alleles_Y = len(Y_STR_Data[sample_name_Y][marker_Y])
+        for x in range (no_alleles_Y):
+            al = Y_STR_Data[sample_name_Y][marker_Y][x][1]
+            nr = int(Y_STR_Data[sample_name_Y][marker_Y][x][3])
+            seq = Y_STR_Data[sample_name_Y][marker_Y][x][4]
+            val = Y_STR_Data[sample_name_Y][marker_Y][x][5]
+            insert_Y_STR = "INSERT INTO Y_STRdata (sample_name, marker, allele, sequence, no_reads, CE_validation, head_Y_id) \
+            VALUES ('%s', '%s', '%s', '%s', '%d', '%s', '%d')" % (sample_name_Y, marker_Y, al, seq, nr, val, head_Y_id)
+            c.execute(insert_Y_STR)
+            db.commit()
+            print (sample_name_Y, ' ', marker_Y, ' done')
+
+            
+   
+            
+
+db.close()
+print('all done')    
 
