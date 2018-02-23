@@ -92,20 +92,20 @@ create view NGS_FORENSIC.MarkerAutoSTRview as
 select m.marker, m.allele,  m.sequence,  m. avg_no_reads, m.count_seq, m.count_seq/n.sum_count_seq  as frequency 
 from (select distinct (a.sequence), a.allele, a.marker, t.count_seq, t.avg_no_reads
 			from AutoSTRdata AS a
-			JOIN ( select sequence, marker, CE_validation,
+			JOIN ( select sequence, marker,
                 count(sequence) AS count_seq, avg(no_reads) AS avg_no_reads
                 from AutoSTRdata
-                group by  sequence, marker, CE_validation) AS t 
-				ON a.sequence = t.sequence AND a.marker = t.marker and a.CE_validation = t.CE_validation
+                group by  sequence, marker) AS t 
+				ON a.sequence = t.sequence AND a.marker = t.marker 
 				where  a.CE_validation = 'validated_CE' or a.CE_validation = 'validated_no_reads' ) as m
 join  (select marker,  sum(count_seq) as sum_count_seq
 			from (select distinct (a.sequence), a.allele, a.marker, t.count_seq, t.avg_no_reads
 			from AutoSTRdata AS a
-			JOIN ( select sequence, marker, CE_validation,
+			JOIN ( select sequence, marker,
                 count(sequence) AS count_seq, avg(no_reads) AS avg_no_reads
                 from AutoSTRdata
-                group by  sequence, marker, CE_validation) AS t 
-				ON a.sequence = t.sequence AND a.marker = t.marker and a.CE_validation = t.CE_validation
+                group by  sequence, marker) AS t 
+				ON a.sequence = t.sequence AND a.marker = t.marker
 				where  a.CE_validation = 'validated_CE' or a.CE_validation = 'validated_no_reads' ) as x
             group by marker) as n
 on m.marker = n.marker 
@@ -115,43 +115,44 @@ create view NGS_FORENSIC.MarkerY_STRview as
 select m.marker, m.allele,  m.sequence,  m. avg_no_reads, m.count_seq, m.count_seq/n.sum_count_seq  as frequency 
 from (select distinct (a.sequence), a.allele, a.marker, t.count_seq, t.avg_no_reads
 			from Y_STRdata AS a
-			JOIN ( select sequence, marker, CE_validation,
+			JOIN ( select sequence, marker,
                 count(sequence) AS count_seq, avg(no_reads) AS avg_no_reads
                 from Y_STRdata
-                group by  sequence, marker, CE_validation) AS t 
-				ON a.sequence = t.sequence AND a.marker = t.marker and a.CE_validation = t.CE_validation
+                group by  sequence, marker) AS t 
+				ON a.sequence = t.sequence AND a.marker = t.marker 
 				where  a.CE_validation = 'validated_CE' or a.CE_validation = 'validated_no_reads' ) as m
 join  (select marker,  sum(count_seq) as sum_count_seq
 			from (select distinct (a.sequence), a.allele, a.marker, t.count_seq, t.avg_no_reads
 			from Y_STRdata AS a
-			JOIN ( select sequence, marker, CE_validation,
+			JOIN ( select sequence, marker, 
                 count(sequence) AS count_seq, avg(no_reads) AS avg_no_reads
                 from Y_STRdata
-                group by  sequence, marker, CE_validation) AS t 
-				ON a.sequence = t.sequence AND a.marker = t.marker and a.CE_validation = t.CE_validation
+                group by  sequence, marker) AS t 
+				ON a.sequence = t.sequence AND a.marker = t.marker 
 				where  a.CE_validation = 'validated_CE' or a.CE_validation = 'validated_no_reads' ) as x
             group by marker) as n
 on m.marker = n.marker 
 order by marker, allele ;  
 
+
 create view NGS_FORENSIC.MarkerX_STRview as 
 select m.marker, m.allele,  m.sequence,  m. avg_no_reads, m.count_seq, m.count_seq/n.sum_count_seq  as frequency 
 from (select distinct (a.sequence), a.allele, a.marker, t.count_seq, t.avg_no_reads
 			from X_STRdata AS a
-			JOIN ( select sequence, marker, CE_validation,
+			JOIN ( select sequence, marker, 
                 count(sequence) AS count_seq, avg(no_reads) AS avg_no_reads
                 from X_STRdata
-                group by  sequence, marker, CE_validation) AS t 
-				ON a.sequence = t.sequence AND a.marker = t.marker and a.CE_validation = t.CE_validation
+                group by  sequence, marker) AS t 
+				ON a.sequence = t.sequence AND a.marker = t.marker 
 				where  a.CE_validation = 'validated_CE' or a.CE_validation = 'validated_no_reads' ) as m
 join  (select marker,  sum(count_seq) as sum_count_seq
 			from (select distinct (a.sequence), a.allele, a.marker, t.count_seq, t.avg_no_reads
 			from X_STRdata AS a
-			JOIN ( select sequence, marker, CE_validation,
+			JOIN ( select sequence, marker,
                 count(sequence) AS count_seq, avg(no_reads) AS avg_no_reads
                 from X_STRdata
-                group by  sequence, marker, CE_validation) AS t 
-				ON a.sequence = t.sequence AND a.marker = t.marker and a.CE_validation = t.CE_validation
+                group by  sequence, marker) AS t 
+				ON a.sequence = t.sequence AND a.marker = t.marker 
 				where  a.CE_validation = 'validated_CE' or a.CE_validation = 'validated_no_reads' ) as x
             group by marker) as n
 on m.marker = n.marker 
