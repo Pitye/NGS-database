@@ -241,7 +241,7 @@ for sample_name_Y in sample_names_Y:
     insert_head_Y = "INSERT INTO Heads_Y (sample_name, project, analysis, run, gender, created, no_mismatches_Y) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%d')" % (sample_name_Y, pr, an, ru, ge, cr, nm) 
     c.execute(insert_head_Y)
     db.commit()
-    print(sample_name_Y, " head_Y done")
+    #print(sample_name_Y, " head_Y done")
     select_head_Y_id = "SELECT id FROM Heads_Y WHERE sample_name = '%s' AND \
                                                  project = '%s' AND \
                                                  analysis = '%s' AND \
@@ -251,7 +251,7 @@ for sample_name_Y in sample_names_Y:
                                                  no_mismatches_Y = '%d' " % (sample_name_Y, pr, an, ru, ge, cr, nm)
     c.execute(select_head_Y_id)
     head_Y_id = int(c.fetchone()[0])
-    print (head_Y_id)
+    #print (head_Y_id)
     for marker_Y in markers_Y:
         no_alleles_Y = len(Y_STR_Data[sample_name_Y][marker_Y])
         for x in range (no_alleles_Y):
@@ -263,7 +263,7 @@ for sample_name_Y in sample_names_Y:
             VALUES ('%s', '%s', '%s', '%s', '%d', '%s', '%d')" % (sample_name_Y, marker_Y, al, seq, nr, val, head_Y_id)
             c.execute(insert_Y_STR)
             db.commit()
-            print (sample_name_Y, ' ', marker_Y, ' done')
+            #print (sample_name_Y, ' ', marker_Y, ' done')
 
             
    
