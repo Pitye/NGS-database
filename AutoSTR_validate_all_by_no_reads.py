@@ -243,7 +243,7 @@ for sample_name in sample_names:
     insert_head = "INSERT INTO Heads (sample_name, project, analysis, run, gender, created, no_mismatches) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%d')" % (sample_name, pr, an, ru, ge, cr, nm) 
     c.execute(insert_head)
     db.commit()
-    #print(sample_name, " head done")
+    print(sample_name, " inserted in database")
     select_head_id = "SELECT id FROM Heads WHERE sample_name = '%s' AND \
                                                  project = '%s' AND \
                                                  analysis = '%s' AND \
