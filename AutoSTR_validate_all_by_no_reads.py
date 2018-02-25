@@ -243,7 +243,7 @@ for sample_name in sample_names:
     insert_head = "INSERT INTO Heads (sample_name, project, analysis, run, gender, created, no_mismatches) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%d')" % (sample_name, pr, an, ru, ge, cr, nm) 
     c.execute(insert_head)
     db.commit()
-    print(sample_name, " head done")
+    #print(sample_name, " head done")
     select_head_id = "SELECT id FROM Heads WHERE sample_name = '%s' AND \
                                                  project = '%s' AND \
                                                  analysis = '%s' AND \
@@ -253,7 +253,7 @@ for sample_name in sample_names:
                                                  no_mismatches = '%d' " % (sample_name, pr, an, ru, ge, cr, nm)
     c.execute(select_head_id)
     head_id = int(c.fetchone()[0])
-    print (head_id)
+    #print (head_id)
     for marker in markers:
         for x in range (2):
             al = Auto_STR_Data[sample_name][marker][x][1]
@@ -264,7 +264,7 @@ for sample_name in sample_names:
             VALUES ('%s', '%s', '%s', '%s', '%d', '%s', '%d')" % (sample_name, marker, al, seq, nr, val, head_id)
             c.execute(insert_Auto_STR)
             db.commit()
-            print (sample_name, ' ', marker, ' done')
+            #print (sample_name, ' ', marker, ' done')
 
             
    
