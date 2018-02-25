@@ -214,7 +214,7 @@ for sample_NGS in samples_NGS:
         
         Auto_STR_Head[sample_NGS]['No_mismatches']= no_mismatches
     else:
-        print(sample_NGS, ' is not in xml files')
+        print(sample_NGS, ' is not in xml or csv CE files')
         Auto_STR_Head[sample_NGS]['No_mismatches']= no_mismatches
         for marker in markers:
             if int(Auto_STR_Data[sample_NGS][marker][0][3]) >= no_reads_for_validation and int(Auto_STR_Data[sample_NGS][marker][1][3]) >= no_reads_for_validation:
