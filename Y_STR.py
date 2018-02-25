@@ -61,6 +61,27 @@ for file in xml_list:
         #print(list(Data_CE_part.keys()))
         Data_CE = merge_two_dicts(Data_CE, Data_CE_part)
             
+
+#reading data from CSV_CE files to dictionary Data_CE for validating Auto_STR_Data
+CSV_CE_list = os.listdir(CSV_CE_directory)
+CSV_data_CE = {}
+for file in CSV_CE_list:
+    if file.endswith('.csv'):
+        genotype = {}
+
+        for row in csv.reader(open(CSV_CE_directory + file), delimiter=','):    
+            specimen_id = row[9]
+            locus_name = row[79].replace(' ', '')
+            allele_values = row[80].split(", ")
+            if not locus_name.startswith('DYS') and not locus_name.startswith('YGAT') and len(allele_values) == 1:
+                allele_values.append(allele_values[0])
+            genotype[locus_name] = allele_values
+   
+            
+        CSV_data_CE[specimen_id] = genotype
+
+
+Data_CE = merge_two_dicts(Data_CE, CSV_data_CE)            
 print('Data_CE done') 
 
 #reading CSV files in directory for sheet[1] - 'Y STRs'
