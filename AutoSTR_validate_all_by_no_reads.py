@@ -10,6 +10,7 @@ import MySQLdb
 in_directory = '/Users/sweethome/Desktop/project_NGS/NGS/xlsx/'
 out_directory = '/Users/sweethome/Desktop/project_NGS/NGS/csv/'
 xml_directory = '/Users/sweethome/Desktop/project_NGS/NGS/xml_CE/'
+CSV_CE_directory = '/Users/sweethome/Desktop/project_NGS/NGS/csv_CE/'
 sheets = ['Autosomal STRs', 'Y STRs', 'X STRs', 'iSNPs']
 no_reads_for_validation = 150
 
