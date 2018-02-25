@@ -124,7 +124,7 @@ for sample_name_i in samples_NGS_i:
     select_head_id_i = "SELECT id FROM Heads WHERE sample_name = '%s'" % (sample_name_i)
     c.execute(select_head_id_i)
     head_id_i = int(c.fetchone()[0])
-    print (sample_name_i, ' inserted to database')
+    print (sample_name_i, ' inserted in database')
     for marker_i in markers_i:
         for x in range (2):
             al_i = i_SNP_Data[sample_name_i][marker_i][x][1]
