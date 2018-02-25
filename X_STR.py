@@ -245,7 +245,7 @@ for sample_name_X in sample_names_X:
     insert_head_X = "INSERT INTO Heads_X (sample_name, project, analysis, run, gender, created, no_mismatches_X) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%d')" % (sample_name_X, pr, an, ru, ge, cr, nm) 
     c.execute(insert_head_X)
     db.commit()
-    #print(sample_name_X, " head_X done")
+    print(sample_name_X, " inserted in database")
     select_head_X_id = "SELECT id FROM Heads_X WHERE sample_name = '%s' AND \
                                                  project = '%s' AND \
                                                  analysis = '%s' AND \
@@ -267,7 +267,7 @@ for sample_name_X in sample_names_X:
             VALUES ('%s', '%s', '%s', '%s', '%d', '%s', '%d')" % (sample_name_X, marker_X, al, seq, nr, val, head_X_id)
             c.execute(insert_X_STR)
             db.commit()
-            print (sample_name_X, ' ', marker_X, ' done')
+            #print (sample_name_X, ' ', marker_X, ' done')
 
             
    
