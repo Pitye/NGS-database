@@ -112,7 +112,7 @@ for sample_NGS_i in samples_NGS_i:
            
         
 
-print (i_SNP_Data)        
+#print (i_SNP_Data)        
 print('i_SNP_Data_ done')
 
 #insert data from 'i_SNP_Data' to MySQL NGS_FORENSIC database (create dtbschema by querries in sql file)'
@@ -134,7 +134,7 @@ for sample_name_i in samples_NGS_i:
             VALUES ('%s', '%s', '%s', '%d', '%s', '%d')" % (sample_name_i, marker_i, al_i, nr_i, val_i, head_id_i)
             c.execute(insert_i_SNP)
             db.commit()
-            print (sample_name_i, ' ', marker_i, ' done')
+            #print (sample_name_i, ' ', marker_i, ' done')
 
             
    
