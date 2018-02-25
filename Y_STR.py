@@ -208,7 +208,7 @@ for sample_NGS_Y in samples_NGS_Y:
         
             Y_STR_Head[sample_NGS_Y]['No_mismatches_Y']= no_mismatches_Y
     else:
-        print(sample_NGS_Y, ' is not in xml files')
+        print(sample_NGS_Y, ' is not in xml or csv CE files')
         Y_STR_Head[sample_NGS_Y]['No_mismatches_Y']= no_mismatches_Y
         for marker_Y in markers_Y:
             no_alleles_Y = len(Y_STR_Data[sample_NGS_Y][marker_Y])
