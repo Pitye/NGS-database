@@ -47,7 +47,7 @@ sequence varchar(500),
 CE_validation varchar(50),
 head_id int,
 PRIMARY KEY (id),
-CONSTRAINT head_fk FOREIGN KEY (head_id) REFERENCES Heads(id)
+CONSTRAINT head_fk FOREIGN KEY (head_id) REFERENCES Heads(id) ON DELETE CASCADE
 );
 
 create table NGS_FORENSIC.Y_STRdata(
@@ -60,7 +60,7 @@ sequence varchar(500),
 CE_validation varchar(50),
 head_Y_id int,
 PRIMARY KEY (id),
-CONSTRAINT head_Y_fk FOREIGN KEY (head_Y_id) REFERENCES Heads_Y(id)
+CONSTRAINT head_Y_fk FOREIGN KEY (head_Y_id) REFERENCES Heads_Y(id) ON DELETE CASCADE
 );
 
 create table NGS_FORENSIC.X_STRdata(
@@ -73,7 +73,7 @@ sequence varchar(500),
 CE_validation varchar(50),
 head_X_id int,
 PRIMARY KEY (id),
-CONSTRAINT head_X_fk FOREIGN KEY (head_X_id) REFERENCES Heads_X(id)
+CONSTRAINT head_X_fk FOREIGN KEY (head_X_id) REFERENCES Heads_X(id) ON DELETE CASCADE
 );
 
 create table NGS_FORENSIC.SNPdata(
@@ -85,7 +85,7 @@ no_reads int,
 validation_by_no_reads varchar(50),
 head_id int,
 PRIMARY KEY (id),
-CONSTRAINT head_SNP_fk FOREIGN KEY (head_id) REFERENCES Heads(id)
+CONSTRAINT head_SNP_fk FOREIGN KEY (head_id) REFERENCES Heads(id) ON DELETE CASCADE
 );
 
 create view NGS_FORENSIC.MarkerAutoSTRview as 
