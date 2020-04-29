@@ -37,6 +37,18 @@ no_mismatches_X int,
 PRIMARY KEY (id)
 );
 
+CREATE TABLE `Heads_flankingReg` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sample_name` varchar(50) NOT NULL,
+  `project` varchar(50) NOT NULL,
+  `analysis` varchar(50) NOT NULL,
+  `run` varchar(50) NOT NULL,
+  `gender` varchar(50) NOT NULL,
+  `created` varchar(100) NOT NULL,
+  `no_mismatches` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=440 DEFAULT CHARSET=latin1;
+
 create table NGS_FORENSIC.AutoSTRdata(
 id INT NOT NULL AUTO_INCREMENT,
 sample_name varchar(50) NOT NULL,
@@ -87,6 +99,20 @@ head_id int,
 PRIMARY KEY (id),
 CONSTRAINT head_SNP_fk FOREIGN KEY (head_id) REFERENCES Heads(id) ON DELETE CASCADE
 );
+
+CREATE TABLE `AutoSTRdata_flankingReg` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sample_name` varchar(50) NOT NULL,
+  `marker` varchar(50) NOT NULL,
+  `allele` varchar(50) DEFAULT NULL,
+  `no_reads` int(11) DEFAULT NULL,
+  `sequence` varchar(500) DEFAULT NULL,
+  `CE_validation` varchar(50) DEFAULT NULL,
+  `head_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `head_fk_FR` (`head_id`),
+  CONSTRAINT `head_fk_FR` FOREIGN KEY (`head_id`) REFERENCES `Heads_flankingReg` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=23875 DEFAULT CHARSET=latin1;
 
 create view NGS_FORENSIC.MarkerAutoSTRview as 
 select m.marker, m.allele,  m.sequence,  m. avg_no_reads, m.count_seq, m.count_seq/n.sum_count_seq  as frequency 
@@ -175,6 +201,132 @@ join ( select t1.marker, t1.validation_by_no_reads, sum(t1.count_allele) as sum_
  on  t1.marker = t2.marker
  order by marker, allele; 
 
+CREATE 
+    ALGORITHM = UNDEFINED 
+    DEFINER = `root`@`localhost` 
+    SQL SECURITY DEFINER
+VIEW `nomenclature_autostrdata` AS
+    SELECT 
+        `ASD`.`sample_name` AS `sample_name`,
+        `ASD`.`marker` AS `marker`,
+        `ASD`.`allele` AS `allele`,
+        `nay`.`seq_name` AS `seq_name`,
+        `nay`.`PubMed_ID` AS `PubMed_ID`,
+        `ASD`.`no_reads` AS `no_reads`,
+        `ASD`.`CE_validation` AS `CE_validation`,
+        `ASD`.`head_id` AS `head_id`,
+        `ASD`.`sequence` AS `sequence`
+    FROM
+        (`ngs_forensic`.`autostrdata` `ASD`
+        LEFT JOIN (SELECT 
+            `NA`.`locus` AS `locus`,
+                `NA`.`PubMed_ID` AS `PubMed_ID`,
+                `NA`.`seq_name` AS `seq_name`,
+                `NA`.`PubMed_Nomenclature_AutoSTR_Illumina_longseq` AS `PubMed_Nomenclature_AutoSTR_Illumina_longseq`,
+                `NA`.`reverse_Illumina_longseq` AS `reverse_Illumina_longseq`,
+                `NA`.`Illumina_sequence` AS `Illumina_sequence`
+        FROM
+            `ngs_forensic`.`nomenclature_autostr` `NA`
+        WHERE
+            (`NA`.`present_in_Illumina` = 'yes')) `NAY` ON (((`ASD`.`sequence` = `nay`.`Illumina_sequence`)
+            AND (`ASD`.`marker` = `nay`.`locus`))))
+            
+            
+
+CREATE 
+    ALGORITHM = UNDEFINED 
+    DEFINER = `root`@`localhost` 
+    SQL SECURITY DEFINER
+VIEW `nomenclature_markerautostrview` AS
+    SELECT 
+        `m`.`marker` AS `marker`,
+        `m`.`allele` AS `allele`,
+        `n`.`seq_name` AS `seq_name`,
+        `m`.`avg_no_reads` AS `avg_no_reads`,
+        `m`.`count_seq` AS `count_seq`,
+        `m`.`frequency` AS `frequency`,
+        `m`.`sequence` AS `sequence`,
+        `n`.`PubMed_Nomenclature_AutoSTR_Illumina_longseq` AS `PubMed_Nomenclature_AutoSTR_Illumina_longseq`,
+        `n`.`PubMed_ID` AS `PubMed_ID`
+    FROM
+        (`ngs_forensic`.`markerautostrview` `m`
+        LEFT JOIN (SELECT 
+            `n1`.`locus` AS `locus`,
+                `n1`.`PubMed_ID` AS `PubMed_ID`,
+                `n1`.`seq_name` AS `seq_name`,
+                `n1`.`allele` AS `allele`,
+                `n1`.`PubMed_Nomenclature_AutoSTR_Illumina_longseq` AS `PubMed_Nomenclature_AutoSTR_Illumina_longseq`,
+                `n1`.`reverse_Illumina_longseq` AS `reverse_Illumina_longseq`,
+                `n1`.`Illumina_sequence` AS `Illumina_sequence`,
+                `n1`.`present_in_Illumina` AS `present_in_Illumina`
+        FROM
+            `ngs_forensic`.`nomenclature_autostr` `n1`
+        WHERE
+            (`n1`.`present_in_Illumina` = 'yes')) `n` ON (((`m`.`sequence` = `n`.`Illumina_sequence`)
+            AND (`m`.`marker` = `n`.`locus`))))
+    ORDER BY `m`.`marker` , `m`.`allele`
+    
+    
+CREATE 
+    ALGORITHM = UNDEFINED 
+    DEFINER = `root`@`localhost` 
+    SQL SECURITY DEFINER
+VIEW `nomen_freq_autostrdata` AS
+    SELECT 
+        `b`.`sample_name` AS `sample_name`,
+        `b`.`marker` AS `marker`,
+        `b`.`allele` AS `allele`,
+        `b`.`seq_name` AS `seq_name`,
+        `b`.`PubMed_ID` AS `PubMed_ID`,
+        `b`.`sequence` AS `sequence`,
+        `b`.`no_reads` AS `no_reads`,
+        `b`.`CE_validation` AS `CE_validation`,
+        `b`.`head_id` AS `head_id`,
+        `c`.`avg_no_reads` AS `avg_no_reads`,
+        `c`.`count_seq` AS `count_seq`,
+        `c`.`frequency` AS `frequency`
+    FROM
+        (`ngs_forensic`.`nomenclature_autostrdata` `b`
+        LEFT JOIN `ngs_forensic`.`markerautostrview` `c` ON (((`c`.`sequence` = `b`.`sequence`)
+            AND (`c`.`marker` = `b`.`marker`))))
+    ORDER BY `b`.`sample_name`
+ 
+ 
+ 
+ CREATE 
+    ALGORITHM = UNDEFINED 
+    DEFINER = `root`@`localhost` 
+    SQL SECURITY DEFINER
+VIEW `noname_sequence` AS
+    SELECT 
+        `nm`.`marker` AS `marker`,
+        `nm`.`allele` AS `allele`,
+        `ad`.`CE_validation` AS `CE_validation`,
+        `nm`.`sequence` AS `sequence`,
+        `nm`.`avg_no_reads` AS `avg_no_reads`,
+        `nm`.`count_seq` AS `count_seq`,
+        `nm`.`frequency` AS `frequency`,
+        `ad`.`sample_name` AS `sample_name`
+    FROM
+        (((SELECT 
+            `a`.`marker` AS `marker`,
+                `a`.`allele` AS `allele`,
+                `a`.`seq_name` AS `seq_name`,
+                `a`.`avg_no_reads` AS `avg_no_reads`,
+                `a`.`count_seq` AS `count_seq`,
+                `a`.`frequency` AS `frequency`,
+                `a`.`sequence` AS `sequence`,
+                `a`.`PubMed_Nomenclature_AutoSTR_Illumina_longseq` AS `PubMed_Nomenclature_AutoSTR_Illumina_longseq`,
+                `a`.`PubMed_ID` AS `PubMed_ID`
+        FROM
+            `ngs_forensic`.`nomenclature_markerautostrview` `a`
+        WHERE
+            ISNULL(`a`.`seq_name`))) `nm`
+        JOIN `ngs_forensic`.`autostrdata` `ad` ON (((`nm`.`sequence` = `ad`.`sequence`)
+            AND (`nm`.`marker` = `ad`.`marker`))))
+    ORDER BY `nm`.`marker` , `nm`.`allele`
+    
+                
 
 
 
