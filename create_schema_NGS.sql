@@ -340,7 +340,29 @@ VIEW `nomen_freq_autostrdata` AS
             AND (`c`.`marker` = `b`.`marker`))))
     ORDER BY `b`.`sample_name`
  
- 
+ CREATE 
+    ALGORITHM = UNDEFINED 
+    DEFINER = `root`@`localhost` 
+    SQL SECURITY DEFINER
+VIEW `nomen_freq_autostrdata_flankingreg` AS
+    SELECT 
+        `b`.`sample_name` AS `sample_name`,
+        `b`.`marker` AS `marker`,
+        `b`.`allele` AS `allele`,
+        `b`.`seq_name` AS `seq_name`,
+        `b`.`PubMed_ID` AS `PubMed_ID`,
+        `b`.`sequence` AS `sequence`,
+        `b`.`no_reads` AS `no_reads`,
+        `b`.`CE_validation` AS `CE_validation`,
+        `b`.`head_id` AS `head_id`,
+        `c`.`avg_no_reads` AS `avg_no_reads`,
+        `c`.`count_seq` AS `count_seq`,
+        `c`.`frequency` AS `frequency`
+    FROM
+        (`ngs_forensic`.`nomenclature_autostrdata_flankingreg` `b`
+        LEFT JOIN `ngs_forensic`.`markerautostrview_flankingreg` `c` ON (((`c`.`sequence` = `b`.`sequence`)
+            AND (`c`.`marker` = `b`.`marker`))))
+    ORDER BY `b`.`sample_name`
  
  CREATE 
     ALGORITHM = UNDEFINED 
