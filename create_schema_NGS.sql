@@ -135,7 +135,56 @@ join  (select marker,  sum(count_seq) as sum_count_seq
 				where  a.CE_validation = 'validated_CE' or a.CE_validation = 'validated_no_reads' ) as x
             group by marker) as n
 on m.marker = n.marker 
-order by marker, allele ;  
+order by marker, allele ; 
+
+CREATE VIEW ngs_forensic.markerautostrview_flankingreg 
+AS 
+  SELECT m.marker, 
+         m.allele, 
+         m.SEQUENCE, 
+         m. avg_no_reads, 
+         m.count_seq, 
+         m.count_seq / n.sum_count_seq AS frequency 
+  FROM   (SELECT DISTINCT ( a.SEQUENCE ), 
+                          a.allele, 
+                          a.marker, 
+                          t.count_seq, 
+                          t.avg_no_reads 
+          FROM   autostrdata_flankingreg AS a 
+                 join (SELECT SEQUENCE, 
+                              marker, 
+                              Count(SEQUENCE) AS count_seq, 
+                              Avg(no_reads)   AS avg_no_reads 
+                       FROM   autostrdata_flankingreg 
+                       GROUP  BY SEQUENCE, 
+                                 marker) AS t 
+                   ON a.SEQUENCE = t.SEQUENCE 
+                      AND a.marker = t.marker 
+          WHERE  a.ce_validation = 'validated_CE' 
+                  OR a.ce_validation = 'validated_no_reads') AS m 
+         join (SELECT marker, 
+                      SUM(count_seq) AS sum_count_seq 
+               FROM   (SELECT DISTINCT ( a.SEQUENCE ), 
+                                       a.allele, 
+                                       a.marker, 
+                                       t.count_seq, 
+                                       t.avg_no_reads 
+                       FROM   autostrdata_flankingreg AS a 
+                              join (SELECT SEQUENCE, 
+                                           marker, 
+                                           Count(SEQUENCE) AS count_seq, 
+                                           Avg(no_reads)   AS avg_no_reads 
+                                    FROM   autostrdata_flankingreg 
+                                    GROUP  BY SEQUENCE, 
+                                              marker) AS t 
+                                ON a.SEQUENCE = t.SEQUENCE 
+                                   AND a.marker = t.marker 
+                       WHERE  a.ce_validation = 'validated_CE' 
+                               OR a.ce_validation = 'validated_no_reads') AS x 
+               GROUP  BY marker) AS n 
+           ON m.marker = n.marker 
+  ORDER  BY marker, 
+            allele; 
 
 create view NGS_FORENSIC.MarkerY_STRview as 
 select m.marker, m.allele,  m.sequence,  m. avg_no_reads, m.count_seq, m.count_seq/n.sum_count_seq  as frequency 
@@ -326,7 +375,35 @@ VIEW `noname_sequence` AS
             AND (`nm`.`marker` = `ad`.`marker`))))
     ORDER BY `nm`.`marker` , `nm`.`allele`
     
-                
+ CREATE VIEW nomenclature_autostrdata_flankingreg 
+AS 
+  SELECT t.sample_name   AS sample_name, 
+         t.marker        AS marker, 
+         t.allele        AS allele, 
+         t.seq_name      AS seq_name, 
+         t.pubmed_id     AS PubMed_ID, 
+         t.no_reads      AS no_reads, 
+         t.ce_validation AS CE_validation, 
+         t.head_id       AS head_id, 
+         t.sequence      AS sequence 
+  FROM   (SELECT a.sample_name         AS sample_name, 
+                 a.marker              AS marker, 
+                 a.allele              AS allele, 
+                 n.seq_name            AS seq_name, 
+                 n.pubmed_id           AS PubMed_ID, 
+                 a.no_reads            AS no_reads, 
+                 a.ce_validation       AS CE_validation, 
+                 a.head_id             AS head_id, 
+                 a.sequence            AS sequence, 
+                 n.present_in_illumina AS present_in_Illumina 
+          FROM   ngs_forensic.nomenclature_autostr AS n 
+                 LEFT JOIN autostrdata_flankingreg AS a 
+                        ON n.locus = a.marker 
+                           AND n.allele = a.allele 
+          WHERE  n.pubmed_nomenclature_autostr_illumina_longseq = a.sequence 
+                  OR n.reverse_illumina_longseq = a.sequence) AS t 
+  WHERE  t.present_in_illumina = 'yes' 
+          OR t.present_in_illumina = 'no';                
 
 
 
