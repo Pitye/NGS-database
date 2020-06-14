@@ -313,8 +313,41 @@ VIEW `nomenclature_markerautostrview` AS
         WHERE
             (`n1`.`present_in_Illumina` = 'yes')) `n` ON (((`m`.`sequence` = `n`.`Illumina_sequence`)
             AND (`m`.`marker` = `n`.`locus`))))
-    ORDER BY `m`.`marker` , `m`.`allele`
-    
+    ORDER BY `m`.`marker` , `m`.`allele`;
+		 
+CREATE VIEW nomenclature_markerautostrview_flankingreg 
+AS 
+  SELECT t.marker                                       AS marker, 
+         t.allele                                       AS allele, 
+         t.seq_name                                     AS seq_name, 
+         t.avg_no_reads                                 AS avg_no_reads, 
+         t.count_seq                                    AS count_seq, 
+         t.frequency                                    AS frequency, 
+         t.sequence                                     AS sequence, 
+         t.pubmed_id                                    AS PubMed_ID, 
+         t.pubmed_nomenclature_autostr_illumina_longseq AS 
+         PubMed_Nomenclature_AutoSTR_Illumina_longseq 
+  FROM   (SELECT m.marker                                       AS marker, 
+                 m.allele                                       AS allele, 
+                 n.seq_name                                     AS seq_name, 
+                 m.avg_no_reads                                 AS avg_no_reads, 
+                 m.count_seq                                    AS count_seq, 
+                 m.frequency                                    AS frequency, 
+                 m.sequence                                     AS sequence, 
+                 n.pubmed_nomenclature_autostr_illumina_longseq AS 
+                 PubMed_Nomenclature_AutoSTR_Illumina_longseq, 
+                 n.pubmed_id                                    AS PubMed_ID, 
+                 n.present_in_illumina                          AS 
+                 present_in_Illumina 
+          FROM   markerautostrview_flankingreg AS m 
+                 LEFT JOIN nomenclature_autostr AS n 
+                        ON n.locus = m.marker 
+                           AND n.allele = m.allele 
+          WHERE  n.pubmed_nomenclature_autostr_illumina_longseq = m.sequence 
+                  OR n.reverse_illumina_longseq = m.sequence) AS t 
+  WHERE  t.present_in_illumina = 'yes' 
+          OR t.present_in_illumina = 'no'; 
+  
     
 CREATE 
     ALGORITHM = UNDEFINED 
