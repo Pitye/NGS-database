@@ -131,6 +131,11 @@ for sample in samples:
             Auto_STR_Head[sample]['Gender'] = 'XY' 
         else:
             Auto_STR_Head[sample]['Gender'] = 'N/A'
+            
+    if Auto_STR_Data[sample]['Amelogenin'][0][1] == '0':
+        Auto_STR_Data[sample]['Amelogenin'][0][1] = 'X'
+    if Auto_STR_Data[sample]['Amelogenin'][1][1] == '6':
+        Auto_STR_Data[sample]['Amelogenin'][1][1] = 'Y'
         
 
 #for marker in markers:    
