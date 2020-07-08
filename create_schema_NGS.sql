@@ -13,6 +13,18 @@ no_mismatches int,
 PRIMARY KEY (id)
 );
 
+CREATE TABLE `nomenclature_autostr` (
+  `locus` varchar(100) NOT NULL,
+  `PubMed_ID` varchar(100) NOT NULL,
+  `seq_name` varchar(500) NOT NULL,
+  `allele` varchar(100) NOT NULL,
+  `PubMed_Nomenclature_AutoSTR_Illumina_longseq` varchar(500) NOT NULL,
+  `reverse_Illumina_longseq` varchar(500) DEFAULT NULL,
+  `Illumina_sequence` varchar(500) NOT NULL,
+  `present_in_Illumina` varchar(100) NOT NULL,
+  PRIMARY KEY (`PubMed_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 create table NGS_FORENSIC.Heads_Y(
 id INT NOT NULL AUTO_INCREMENT,
 sample_name varchar(50) NOT NULL unique,
