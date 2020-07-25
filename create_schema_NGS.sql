@@ -123,7 +123,7 @@ CREATE TABLE `AutoSTRdata_flankingReg` (
   `head_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `head_fk_FR` (`head_id`),
-  CONSTRAINT `head_fk_FR` FOREIGN KEY (`head_id`) REFERENCES `Heads_flankingReg` (`id`)
+  CONSTRAINT `head_fk_FR` FOREIGN KEY (`head_id`) REFERENCES `Heads_flankingReg` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=23875 DEFAULT CHARSET=latin1;
 
 create view NGS_FORENSIC.MarkerAutoSTRview as 
