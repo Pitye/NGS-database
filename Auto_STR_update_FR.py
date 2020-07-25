@@ -236,6 +236,10 @@ for sample_NGS in samples_NGS:
                 genotype_NGS = [str(Auto_STR_Data[sample_NGS][marker][0][1])] + [str(Auto_STR_Data[sample_NGS][marker][1][1])]
                 genotype_CE = Data_CE [sample_NGS][marker]
                                
+                #sorting for comparison
+                genotype_CE.sort()
+                genotype_NGS.sort()
+                
                 if genotype_CE == genotype_NGS:
                    
                     Auto_STR_Data[sample_NGS][marker][0] = Auto_STR_Data[sample_NGS][marker][0] + ['validated_CE']
