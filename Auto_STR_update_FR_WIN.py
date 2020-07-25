@@ -138,9 +138,7 @@ for sample in samples:
         Auto_STR_Data[sample]['Amelogenin'][1][1] = 'Y'
         
 
-#for marker in markers:    
-    #print(marker, Auto_STR_Data ['Cechova'][marker][0][1], Auto_STR_Data ['Cechova'][marker][1][1] )
-    #print (sample, Auto_STR_Data[sample]['Amelogenin'][0][1], Auto_STR_Data[sample]['Amelogenin'][1][1], Auto_STR_Head[sample]['Gender'])
+
         
 print ('Auto_STR_Head and Auto_STR_Data done')
 
@@ -240,7 +238,11 @@ for sample_NGS in samples_NGS:
             if marker in list(Data_CE[sample_NGS].keys()):
                 genotype_NGS = [str(Auto_STR_Data[sample_NGS][marker][0][1])] + [str(Auto_STR_Data[sample_NGS][marker][1][1])]
                 genotype_CE = Data_CE [sample_NGS][marker]
-                               
+                
+                #sorting for comparison
+                genotype_CE.sort()
+                genotype_NGS.sort()               
+                
                 if genotype_CE == genotype_NGS:
                    
                     Auto_STR_Data[sample_NGS][marker][0] = Auto_STR_Data[sample_NGS][marker][0] + ['validated_CE']
