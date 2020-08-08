@@ -61,6 +61,33 @@ CREATE TABLE `Heads_flankingReg` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=440 DEFAULT CHARSET=latin1;
 
+CREATE TABLE `heads_y_flankingreg` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sample_name` varchar(50) NOT NULL,
+  `project` varchar(50) NOT NULL,
+  `analysis` varchar(50) NOT NULL,
+  `run` varchar(50) NOT NULL,
+  `gender` varchar(50) NOT NULL,
+  `created` varchar(100) NOT NULL,
+  `no_mismatches_Y` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `sample_name` (`sample_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `y_strdata_flankingreg` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sample_name` varchar(50) NOT NULL,
+  `marker` varchar(50) NOT NULL,
+  `allele` varchar(50) DEFAULT NULL,
+  `no_reads` int(11) DEFAULT NULL,
+  `sequence` varchar(500) DEFAULT NULL,
+  `CE_validation` varchar(50) DEFAULT NULL,
+  `head_Y_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `head_Y_fk_FR` (`head_Y_id`),
+  CONSTRAINT `head_Y_fk_FR` FOREIGN KEY (`head_Y_id`) REFERENCES `heads_y_flankingreg` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 create table NGS_FORENSIC.AutoSTRdata(
 id INT NOT NULL AUTO_INCREMENT,
 sample_name varchar(50) NOT NULL,
