@@ -7,12 +7,14 @@ import operator
 from collections import Counter
 import MySQLdb
 print('please wait...')
+
 in_directory = os.path.normpath('C:/NGS_forensic_database/xlsx_detail_reports') 
 out_directory = os.path.normpath('C:/NGS_forensic_database/csv_output') 
 xml_directory = os.path.normpath('C:/NGS_forensic_database/xml_CE') 
 CSV_CE_directory = os.path.normpath('C:/NGS_forensic_database/csv_CE') 
 sheets = ['Autosomal STR Coverage', 'X STR Coverage', 'Y STR Coverage', 'iSNP Coverage']
 no_reads_for_validation = 150
+CheckIfSampleInDatabase = "YES"
 
 #delete all in OUT DIRECTORY
 shutil.rmtree(out_directory)
@@ -90,7 +92,6 @@ for file in csv_list_0:
                 Auto_STR_Data_raw[sample_name] = sample_raw_dict
         
         
-   
 samples = list(Auto_STR_Data_raw.keys())
 for sample in samples:
     
@@ -131,14 +132,19 @@ for sample in samples:
             Auto_STR_Head[sample]['Gender'] = 'XY' 
         else:
             Auto_STR_Head[sample]['Gender'] = 'N/A'
-            
     if Auto_STR_Data[sample]['Amelogenin'][0][1] == '0':
         Auto_STR_Data[sample]['Amelogenin'][0][1] = 'X'
+    if Auto_STR_Data[sample]['Amelogenin'][0][1] == '6':
+        Auto_STR_Data[sample]['Amelogenin'][0][1] = 'Y'
+    if Auto_STR_Data[sample]['Amelogenin'][1][1] == '0':
+        Auto_STR_Data[sample]['Amelogenin'][1][1] = 'X'    
     if Auto_STR_Data[sample]['Amelogenin'][1][1] == '6':
         Auto_STR_Data[sample]['Amelogenin'][1][1] = 'Y'
         
 
-
+#for marker in markers:    
+    #print(marker, Auto_STR_Data ['Cechova'][marker][0][1], Auto_STR_Data ['Cechova'][marker][1][1] )
+    #print (sample, Auto_STR_Data[sample]['Amelogenin'][0][1], Auto_STR_Data[sample]['Amelogenin'][1][1], Auto_STR_Head[sample]['Gender'])
         
 print ('Auto_STR_Head and Auto_STR_Data done')
 
@@ -238,10 +244,10 @@ for sample_NGS in samples_NGS:
             if marker in list(Data_CE[sample_NGS].keys()):
                 genotype_NGS = [str(Auto_STR_Data[sample_NGS][marker][0][1])] + [str(Auto_STR_Data[sample_NGS][marker][1][1])]
                 genotype_CE = Data_CE [sample_NGS][marker]
-                
+                               
                 #sorting for comparison
                 genotype_CE.sort()
-                genotype_NGS.sort()               
+                genotype_NGS.sort()
                 
                 if genotype_CE == genotype_NGS:
                    
@@ -271,7 +277,7 @@ print('Auto_STR_Head done')
 print('Auto_STR_Data done')
 
 #insert data from 'Auto_STR_Head' and 'Auto_STR_Data' to MySQL NGS_FORENSIC database (create dtbschema by querries in sql file)'
-db=MySQLdb.connect("localhost", "root", "coufalka", "NGS_FORENSIC")
+db=MySQLdb.connect("localhost", "root", "Coufalka*1", "NGS_FORENSIC")
 c = db.cursor()
 sample_names = (list(Auto_STR_Data.keys()))
 for sample_name in sample_names:
@@ -282,33 +288,44 @@ for sample_name in sample_names:
     cr = Auto_STR_Head[sample_name]['Created']
     nm = int(Auto_STR_Head[sample_name]['No_mismatches'])
     
-    insert_head = "INSERT INTO Heads_flankingReg (sample_name, project, analysis, run, gender, created, no_mismatches) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%d')" % (sample_name, pr, an, ru, ge, cr, nm) 
-    c.execute(insert_head)
-    db.commit()
-    print(sample_name, " inserted in database")
-    select_head_id = "SELECT id FROM Heads_flankingReg WHERE sample_name = '%s' AND \
+    # check if sample is already in database
+    if CheckIfSampleInDatabase == "YES": 
+        select_head_id = "SELECT id FROM Heads_flankingReg WHERE sample_name = '%s'" % (sample_name)
+        c.execute(select_head_id)
+        row_count = c.rowcount
+    else:
+        row_count = 0
+    
+    if row_count == 0:
+        
+        insert_head = "INSERT INTO Heads_flankingReg (sample_name, project, analysis, run, gender, created, no_mismatches) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%d')" % (sample_name, pr, an, ru, ge, cr, nm) 
+        c.execute(insert_head)
+        db.commit()
+        print(sample_name, " inserted in database")
+        select_head_id = "SELECT id FROM Heads_flankingReg WHERE sample_name = '%s' AND \
                                                  project = '%s' AND \
                                                  analysis = '%s' AND \
                                                  run = '%s' AND \
                                                  gender = '%s' AND \
                                                  created = '%s' AND \
                                                  no_mismatches = '%d' " % (sample_name, pr, an, ru, ge, cr, nm)
-    c.execute(select_head_id)
-    head_id = int(c.fetchone()[0])
-    #print (head_id)
-    for marker in markers:
-        for x in range (2):
-            al = Auto_STR_Data[sample_name][marker][x][1]
-            nr = int(Auto_STR_Data[sample_name][marker][x][3])
-            seq = Auto_STR_Data[sample_name][marker][x][4]
-            val = Auto_STR_Data[sample_name][marker][x][5]
-            insert_Auto_STR = "INSERT INTO AutoSTRdata_flankingReg (sample_name, marker, allele, sequence, no_reads, CE_validation, head_id) \
-            VALUES ('%s', '%s', '%s', '%s', '%d', '%s', '%d')" % (sample_name, marker, al, seq, nr, val, head_id)
-            c.execute(insert_Auto_STR)
-            db.commit()
-            #print (sample_name, ' ', marker, ' done')
+        c.execute(select_head_id)
+        head_id = int(c.fetchone()[0])
+        #print (head_id)
+        for marker in markers:
+            for x in range (2):
+                al = Auto_STR_Data[sample_name][marker][x][1]
+                nr = int(Auto_STR_Data[sample_name][marker][x][3])
+                seq = Auto_STR_Data[sample_name][marker][x][4]
+                val = Auto_STR_Data[sample_name][marker][x][5]
+                insert_Auto_STR = "INSERT INTO AutoSTRdata_flankingReg (sample_name, marker, allele, sequence, no_reads, CE_validation, head_id) \
+                VALUES ('%s', '%s', '%s', '%s', '%d', '%s', '%d')" % (sample_name, marker, al, seq, nr, val, head_id)
+                c.execute(insert_Auto_STR)
+                db.commit()
+                #print (sample_name, ' ', marker, ' done')
 
-            
+    else:
+        print (sample_name, 'was NOT inserted, entry already exists in database' )
    
             
 
