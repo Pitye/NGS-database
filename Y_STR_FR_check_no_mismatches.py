@@ -265,7 +265,7 @@ print('Y_STR_Data done')
 #print(Y_STR_Data) 
 
 #insert data from 'Auto_STR_Head' and 'Auto_STR_Data' to MySQL NGS_FORENSIC database (create dtbschema by querries in sql file)'
-db=MySQLdb.connect("localhost", "root", "Coufalka*1", "NGS_FORENSIC_TEST")
+db=MySQLdb.connect("localhost", "root", "Coufalka", "NGS_FORENSIC_TEST")
 c = db.cursor()
 sample_names_Y = (list(Y_STR_Data.keys()))
 for sample_name_Y in sample_names_Y:
