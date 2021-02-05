@@ -283,7 +283,7 @@ print('Auto_STR_Head done')
 print('Auto_STR_Data done')
 
 if CheckIfSampleInDatabase == "YES":
-    db=MySQLdb.connect("localhost", "root", "Coufalka", "NGS_FORENSIC_test")
+    db=MySQLdb.connect("localhost", "root", "coufalka", "NGS_FORENSIC")
     c = db.cursor()
     sample_names = (list(Auto_STR_Data.keys()))
     for sample_name in sample_names:
