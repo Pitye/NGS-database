@@ -18,22 +18,25 @@ columns = ['allele', 'seq_name', 'PubMed_ID', 'sequence', 'no_reads', 'CE_valida
 
 length_polymorphism_estimation = 'YES'
 use_external_file_for_missing_markers = 'YES'
-directory_path = os.path.normpath('C:/NGS_forensic_database/relationship_LR_estimation')
-directory_STR_lenght_profiles = 'STR_lenght_profiles'
+#directory_path = os.path.normpath('C:/NGS_forensic_database/relationship_LR_estimation')
+directory_STR_lenght_profiles = os.path.normpath('C:/NGS_forensic_database/relationship_LR_estimation/STR_lenght_profiles')
+directory_STR_lenght_frequencies = os.path.normpath('C:/NGS_forensic_database/relationship_LR_estimation/STR_lenght_frequencies')
 
 ### *** create empty dict for data from mySQL dtb and external files ***
 #sample1_records = {marker: {column: [] for column in columns} for marker in markers}
 #sample2_records = {marker: {column: [] for column in columns} for marker in markers}
 sample_records = {sample: {marker: {column: [] for column in columns} for marker in markers} for sample in sample_names}
 STR_profiles_records = {sample: {marker : {'STRallele' :[], 'STRfrequency' :[]} for marker in markers} for sample in sample_names}
+STR_frequencies = {marker:{} for marker in markers}
+
 missed_markers = {sample: [] for sample in sample_names}
 
-### *** read external files - STR_Lenght_profiles
+### *** read external files - STR_Lenght_profiles ***
 if use_external_file_for_missing_markers == 'YES':
-    file_list_STR_profiles = os.listdir(directory_path + os.path.normpath('/') + directory_STR_lenght_profiles + os.path.normpath('/'))
+    file_list_STR_profiles = os.listdir(directory_STR_lenght_profiles)
     for file in file_list_STR_profiles:
         line_number = 0
-        for line in csv.reader(open(directory_path + os.path.normpath('/') + directory_STR_lenght_profiles + os.path.normpath('/') + file), delimiter=';'):
+        for line in csv.reader(open(directory_STR_lenght_profiles + os.path.normpath('/') + file), delimiter=';'):
             if line_number == 0:
                 STRsample = line[0]
                 if STRsample not in sample_names:
@@ -47,7 +50,23 @@ if use_external_file_for_missing_markers == 'YES':
                 else:
                     print ('not correct structure in external STR profile ' + STRsample + ' line: ' + str(line_number+1) )
             line_number += 1    
-                    
+
+### *** read external files - STR_Lenght_frequencies ***
+    file_list_STR_frequencies = os.listdir(directory_STR_lenght_frequencies)
+    for file in file_list_STR_frequencies:
+        STRmarker = ''
+        for line in csv.reader(open(directory_STR_lenght_frequencies + os.path.normpath('/') + file), delimiter=';'):
+            if len(line) == 1:
+                STRmarker = line[0]
+                if STRmarker not in markers:
+                    print ('external STR frequency for ' + STRmarker + ' will not be estimated, it is not in markers for databasing')
+            if len(line) == 2 and STRmarker in markers:
+                dict1 = {line[0]:line[1]}
+                STR_frequencies[STRmarker].update(dict1)
+                
+                
+                
+
                     
                     
 
@@ -75,7 +94,7 @@ for sample in sample_names:
         #print("head_id  = ", row[8])
         #print("avg_no_reads  = ", row[9])
         ##print("count_seq  = ", row[10])
-        print("frequency  = ", row[11], "\n")
+        #print("frequency  = ", row[11], "\n")
     
         column_index = 2
         for column in columns:
@@ -118,12 +137,13 @@ for sample in sample_names:
     #print ('D1S1656 is empty')
     #del sample1_records['D1S1656']
 #freq1 = sample1_records['D1S1656']['frequency'][0] + sample1_records['D1S1656']['frequency'][1]
-for sample in sample_names:
-    print (list(sample_records[sample].keys()))
-    print (sample_records[sample]['D1S1656']) 
+#for sample in sample_names:
+    #print (list(sample_records[sample].keys()))
+    #print (sample_records[sample]['D1S1656']) 
     #freq2 = sample_records[sample]['D1S1656']['frequency'][0] + sample2_records['D1S1656']['frequency'][1]
 print (missed_markers)
-print (STR_profiles_records)
+#print (STR_profiles_records)
+print (STR_frequencies)
 print('all done')
 #print (freq1, freq2)
 
