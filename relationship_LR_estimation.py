@@ -10,6 +10,7 @@ import MySQLdb
 #from mysql.connector import Error
 
 ### *** parameter settings ***
+print ('Please wait ...')
 sample_names=['MS9-0,0065', 'AA11-KIGEN-SF26']
 
 markers_dict = {'D1S1656': 0.5,'TPOX' : 0.5,'D2S441' : 0.5,'D2S1338' : 0.5,'D3S1358' : 0.5,'D4S2408' : 0.5,'FGA' : 0.5,'D5S818' : 0.5,'CSF1PO' : 0.5,'D6S1043' : 0.5,'D7S820' : 0.5,'D8S1179' : 0.5,'D9S1122' : 0.5,'D10S1248' : 0.5,'TH01': 0.5,'vWA' : 0.5,'D12S391' : 0.5,'D13S317' : 0.5,'PentaE' : 0.5,'D16S539' : 0.5,'D17S1301' : 0.5,'D18S51' : 0.5,'D19S433' : 0.5,'D20S482' : 0.5,'D21S11' : 0.5,'PentaD' : 0.5,'D22S1045' : 0.5}
@@ -126,11 +127,84 @@ db.close()
         #sample2_records[row[1]][column].append(row[column_index])
         #column_index += 1
         
-### *** check which markers don't have any data ***
+### *** check which markers don't have any data and use external STR lenght profiles and STR lenght frecuencies ***
 for sample in sample_names:    
     for marker in markers:
+        
         if not sample_records[sample][marker]['allele']:
             missed_markers[sample].append(marker)
+            
+            if use_external_file_for_missing_markers == 'YES':
+                
+                if sample in list(STR_profiles_records.keys()) and marker in list(STR_profiles_records[sample].keys()):
+                    sample_records[sample][marker]['allele'].append(STR_profiles_records[sample][marker]['STRallele'][0])
+                    sample_records[sample][marker]['allele'].append(STR_profiles_records[sample][marker]['STRallele'][1])
+                    allele1 = sample_records[sample][marker]['allele'][0] 
+                    allele2 = sample_records[sample][marker]['allele'][1]
+                    print(allele1, allele2)
+                    
+                    if allele1 in list(STR_frequencies[marker].keys()) and allele2 in list(STR_frequencies[marker].keys()):
+                        print(list(STR_frequencies[marker].keys())) 
+                        sample_records[sample][marker]['frequency'].append(float(STR_frequencies[marker][allele1]))
+                        
+                        sample_records[sample][marker]['frequency'].append(float(STR_frequencies[marker][allele2]))
+                        missed_markers[sample].remove(marker)
+                    
+                    else:
+                        print('for sample ' + sample + ' and marker ' + marker + ' sequential data are missing and no STR data provided (allele or frequency)')    
+                        
+                
+            
+    for missed_marker in missed_markers[sample]:
+        del sample_records[sample][missed_marker]
+                        
+                        
+    #print (list(sample_records[sample].keys()))
+    #print (missed_markers[sample])
+
+### *** find corresponding formula 
+def isHomozygote(all1, all2):
+    if all1 == all2:
+        return True
+    else:
+        return False
+    
+def isAlleleShared(locus, allele, seq_lenght_type):
+    if seq_lenght_type == 'lenght':
+        column = 'allele'
+    elif seq_lenght_type == 'seq':
+        column = 'PubMed_ID'
+    else:
+        print ('isAlleleShared wrong argument value eq_lenght_type')
+        return
+    
+    if allele == 'A':
+        checked_allele = sample_records[sample_names[0]][locus][column][0]
+        checked_allele_list = sample_records[sample_names[1]][locus][column]
+        
+    elif allele == 'B':
+        checked_allele = sample_records[sample_names[0]][locus][column][1]
+        checked_allele_list = sample_records[sample_names[1]][locus][column]
+        
+    elif allele == 'C':
+        checked_allele = sample_records[sample_names[1]][locus][column][0]
+        checked_allele_list = sample_records[sample_names[0]][locus][column]
+    
+    else:
+        print ('isAlleleShared wrong argument value allele')
+        return
+                                             
+    print(checked_allele,checked_allele_list )                                         
+    if checked_allele in checked_allele_list:
+        return True
+    else:
+        return False
+
+    
+print ('shared allele ' + str( isAlleleShared('D18S51', 'B', 'seq')) )       
+if isHomozygote('1','2')== False:
+    print (isHomozygote('1','2'))
+
 
 #print (sample1_records['D1S1656'])
 #if not sample1_records['D1S1656']['allele']:
@@ -141,9 +215,9 @@ for sample in sample_names:
     #print (list(sample_records[sample].keys()))
     #print (sample_records[sample]['D1S1656']) 
     #freq2 = sample_records[sample]['D1S1656']['frequency'][0] + sample2_records['D1S1656']['frequency'][1]
-print (missed_markers)
+#print (missed_markers)
 #print (STR_profiles_records)
-print (STR_frequencies)
+#print (STR_frequencies)
 print('all done')
 #print (freq1, freq2)
 
