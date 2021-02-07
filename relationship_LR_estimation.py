@@ -72,7 +72,7 @@ if use_external_file_for_missing_markers == 'YES':
                     
 
 ### *** get data from from mySQL dtb ***
-db=MySQLdb.connect("localhost", "root", "Coufalka*1", "NGS_FORENSIC")
+db=MySQLdb.connect("localhost", "root", "****", "NGS_FORENSIC")
 c = db.cursor()
 
 for sample in sample_names:
