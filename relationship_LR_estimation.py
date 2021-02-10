@@ -19,6 +19,14 @@ columns = ['allele', 'seq_name', 'PubMed_ID', 'sequence', 'no_reads', 'CE_valida
 
 length_polymorphism_estimation = 'YES'
 use_external_file_for_missing_markers = 'YES'
+
+if length_polymorphism_estimation == 'YES':
+    seq_lenght_types = ['lenght', 'seq']
+else:
+    seq_lenght_types = ['seq']
+        
+
+
 #directory_path = os.path.normpath('C:/NGS_forensic_database/relationship_LR_estimation')
 directory_STR_lenght_profiles = os.path.normpath('C:/NGS_forensic_database/relationship_LR_estimation/STR_lenght_profiles')
 directory_STR_lenght_frequencies = os.path.normpath('C:/NGS_forensic_database/relationship_LR_estimation/STR_lenght_frequencies')
@@ -72,7 +80,7 @@ if use_external_file_for_missing_markers == 'YES':
                     
 
 ### *** get data from from mySQL dtb ***
-db=MySQLdb.connect("localhost", "root", "****", "NGS_FORENSIC")
+db=MySQLdb.connect("localhost", "root", "Coufalka*1", "NGS_FORENSIC")
 c = db.cursor()
 
 for sample in sample_names:
@@ -128,6 +136,7 @@ db.close()
         #column_index += 1
         
 ### *** check which markers don't have any data and use external STR lenght profiles and STR lenght frecuencies ***
+markers_evaluated = markers
 for sample in sample_names:    
     for marker in markers:
         
@@ -154,56 +163,109 @@ for sample in sample_names:
                         print('for sample ' + sample + ' and marker ' + marker + ' sequential data are missing and no STR data provided (allele or frequency)')    
                         
                 
-            
+             
     for missed_marker in missed_markers[sample]:
         del sample_records[sample][missed_marker]
-                        
+        if missed_marker in markers_evaluated:
+            markers_evaluated.remove(missed_marker)               
                         
     #print (list(sample_records[sample].keys()))
     #print (missed_markers[sample])
 
 ### *** find corresponding formula 
-def isHomozygote(all1, all2):
-    if all1 == all2:
+def setColumn (param_column):
+    if param_column == 'lenght':
+        Fcolumn = 'allele'
+    elif param_column == 'seq':
+        Fcolumn = 'PubMed_ID'
+    return Fcolumn
+
+def setAlleleABCD (letter, param_locus, param_seq_lenght_type):
+    column = setColumn(param_seq_lenght_type)
+    
+    if letter == 'A':
+        AlleleABCD = sample_records[sample_names[0]][param_locus][column][0]
+    elif letter == 'B':
+        AlleleABCD = sample_records[sample_names[0]][param_locus][column][1] 
+    elif letter == 'C':
+        AlleleABCD = sample_records[sample_names[1]][param_locus][column][0]
+    elif letter == 'D':
+        AlleleABCD = sample_records[sample_names[1]][param_locus][column][1]
+    return AlleleABCD
+    
+def isHomozygote(H_sample, H_locus, H_seq_lenght_type):
+    column = setColumn(H_seq_lenght_type) 
+     
+    if sample_records[H_sample][H_locus][column][0] == sample_records[H_sample][H_locus][column][1]:
         return True
     else:
         return False
     
-def isAlleleShared(locus, allele, seq_lenght_type):
-    if seq_lenght_type == 'lenght':
-        column = 'allele'
-    elif seq_lenght_type == 'seq':
-        column = 'PubMed_ID'
-    else:
-        print ('isAlleleShared wrong argument value eq_lenght_type')
-        return
-    
-    if allele == 'A':
-        checked_allele = sample_records[sample_names[0]][locus][column][0]
-        checked_allele_list = sample_records[sample_names[1]][locus][column]
+def isAlleleShared(S_locus, S_allele, S_seq_lenght_type):
+    column = setColumn(S_seq_lenght_type)
+    checked_allele = setAlleleABCD(S_allele, S_locus, S_seq_lenght_type )
+    if S_allele == 'A' or S_allele == 'B':
+        checked_allele_list = sample_records[sample_names[1]][S_locus][column]
+    elif S_allele == 'C' or S_allele == 'D':
+        checked_allele_list = sample_records[sample_names[0]][S_locus][column] 
+    #if allele == 'A':
+    #    checked_allele = sample_records[sample_names[0]][S_locus][column][0]
+    #    checked_allele_list = sample_records[sample_names[1]][S_locus][column]
         
-    elif allele == 'B':
-        checked_allele = sample_records[sample_names[0]][locus][column][1]
-        checked_allele_list = sample_records[sample_names[1]][locus][column]
+    #elif allele == 'B':
+    #    checked_allele = sample_records[sample_names[0]][S_locus][column][1]
+    #   checked_allele_list = sample_records[sample_names[1]][S_locus][column]
         
-    elif allele == 'C':
-        checked_allele = sample_records[sample_names[1]][locus][column][0]
-        checked_allele_list = sample_records[sample_names[0]][locus][column]
+    #elif allele == 'C':
+    #   checked_allele = sample_records[sample_names[1]][S_locus][column][0]
+    #    checked_allele_list = sample_records[sample_names[0]][S_locus][column]
     
     else:
         print ('isAlleleShared wrong argument value allele')
         return
                                              
-    print(checked_allele,checked_allele_list )                                         
+    #print(checked_allele,checked_allele_list )                                         
     if checked_allele in checked_allele_list:
         return True
     else:
         return False
 
-    
+### *** find corresponding formula
+for seq_lenght_type in seq_lenght_types:
+    column = setColumn(seq_lenght_type)
+    for marker in markers_evaluated:
+        if sample_records[sample_names[0]][marker][column] != [] and sample_records[sample_names[1]][marker][column] != []:
+            if isHomozygote(sample_names[0], marker, seq_lenght_type) == True and isHomozygote(sample_names[1], marker, seq_lenght_type) == True:
+                if setAlleleABCD ('A', marker, seq_lenght_type) == setAlleleABCD ('C', marker, seq_lenght_type):
+                    formula_type = '1'
+                else:
+                    continue
+            elif isHomozygote(sample_names[0], marker, seq_lenght_type) == True and isHomozygote(sample_names[1], marker, seq_lenght_type) == False:
+                if isAlleleShared(marker, "A", seq_lenght_type) == True:
+                    formula_type = '2'
+        
+            elif isHomozygote(sample_names[0], marker, seq_lenght_type) == False and isHomozygote(sample_names[1], marker, seq_lenght_type) == True:
+                if setAlleleABCD ('A', marker, seq_lenght_type) == setAlleleABCD ('C', marker, seq_lenght_type):  
+                    formula_type = '2'
+                elif setAlleleABCD ('B', marker, seq_lenght_type) == setAlleleABCD ('C', marker, seq_lenght_type):                                                       
+                    formula_type = '3'
+                                                                      
+            elif isHomozygote(sample_names[0], marker, seq_lenght_type) == False and isHomozygote(sample_names[1], marker, seq_lenght_type) == False:
+                if isAlleleShared(marker, "A", seq_lenght_type) == True and isAlleleShared(marker, "B", seq_lenght_type) == True:
+                    formula_type = '6' 
+                elif isAlleleShared(marker, "A", seq_lenght_type) == True and isAlleleShared(marker, "B", seq_lenght_type) == False:                                                      
+                    formula_type = '4'                                                  
+                elif isAlleleShared(marker, "A", seq_lenght_type) == False and isAlleleShared(marker, "B", seq_lenght_type) == True:                                                      
+                    formula_type = '5'                                                  
+                else:
+                    continue
+            else:                                                          
+                formula_type = '7' 
+                                                                    
+            
+            print( marker, setAlleleABCD ('A', marker, seq_lenght_type), setAlleleABCD ('B', marker, seq_lenght_type), setAlleleABCD ('C', marker, seq_lenght_type), setAlleleABCD ('D', marker, seq_lenght_type), formula_type)
 print ('shared allele ' + str( isAlleleShared('D18S51', 'B', 'seq')) )       
-if isHomozygote('1','2')== False:
-    print (isHomozygote('1','2'))
+
 
 
 #print (sample1_records['D1S1656'])
