@@ -300,7 +300,7 @@ for seq_lenght_type in seq_lenght_types:
             result[marker][seq_lenght_type]['formulas'] = setFormulaCalculation(formula_type, marker, seq_lenght_type)['formula']
             result[marker][seq_lenght_type]['calculations'] = setFormulaCalculation(formula_type, marker, seq_lenght_type)['calculation']
 
-        
+### *** if seq allele is missing, add lenght allele        
 for marker in markers_evaluated:
     if result[marker]['seq']['alleles'] == [] and result[marker]['lenght']['alleles'] != []:
         
