@@ -516,7 +516,7 @@ VIEW `ngs_forensic`.`freq_y_strdata_flankingreg` AS
         `c`.`count_seq` AS `count_seq`,
         `c`.`frequency` AS `frequency`
     FROM
-        (`ngs_forensic_test`.`markery_strview_flankingreg` `c`
+        (`ngs_forensic`.`markery_strview_flankingreg` `c`
         LEFT JOIN `ngs_forensic`.`y_strdata_flankingreg` `b` ON (((`c`.`sequence` = `b`.`sequence`)
             AND (`c`.`marker` = `b`.`marker`))))
     ORDER BY `b`.`sample_name`
