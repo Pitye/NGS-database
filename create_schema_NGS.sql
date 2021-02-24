@@ -499,7 +499,27 @@ AS
   WHERE  t.present_in_illumina = 'yes' 
           OR t.present_in_illumina = 'no';                
 
-
+CREATE 
+    ALGORITHM = UNDEFINED 
+    DEFINER = `root`@`localhost` 
+    SQL SECURITY DEFINER
+VIEW `ngs_forensic`.`freq_y_strdata_flankingreg` AS
+    SELECT 
+        `b`.`sample_name` AS `sample_name`,
+        `b`.`marker` AS `marker`,
+        `b`.`allele` AS `allele`,
+        `b`.`sequence` AS `sequence`,
+        `b`.`no_reads` AS `no_reads`,
+        `b`.`CE_validation` AS `CE_validation`,
+        `b`.`head_Y_id` AS `head_id`,
+        `c`.`avg_no_reads` AS `avg_no_reads`,
+        `c`.`count_seq` AS `count_seq`,
+        `c`.`frequency` AS `frequency`
+    FROM
+        (`ngs_forensic_test`.`markery_strview_flankingreg` `c`
+        LEFT JOIN `ngs_forensic`.`y_strdata_flankingreg` `b` ON (((`c`.`sequence` = `b`.`sequence`)
+            AND (`c`.`marker` = `b`.`marker`))))
+    ORDER BY `b`.`sample_name`
 
 create table NGS_FORENSIC.MarkersAutoSTR(
 id INT NOT NULL AUTO_INCREMENT,
