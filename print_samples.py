@@ -11,6 +11,8 @@ import math
 from datetime import datetime
 
 
+
+directory_reports = os.path.normpath('C:/NGS_forensic_database/print_samples/prints')
 path_samples_print = os.path.normpath('C:/NGS_forensic_database/print_samples/print_sample.txt')
 path_locus_order = os.path.normpath('C:/NGS_forensic_database/print_samples/locus_order.txt')
 table_list = ['AutoSTR', 'Y-STR']
@@ -86,9 +88,19 @@ for sample in sample_names:
                 sample_records[sample][marker][column] = ['null', 'null']
             if len(sample_records[sample][marker][column]) == 1:        
                 sample_records[sample][marker][column].append('null')
-#print (sample_records)                 
+
+### *** create report ***                 
+col4print = ""
+for column in selected_columns:
+    col4print = col4print + "," + column + "," + column
+now = datetime.now()
+dt_string = now.strftime("%Y%m%d%H%M%S")
+report_path_name = directory_reports + os.path.normpath('/') + 'report_print_' + dt_string + '.csv'
+f = open (report_path_name, 'w+')
+#f.writelines(["\nsample_name,marker" + col4print])
 for sample in sample_names:
-    
+    f.writelines(["sample_name,marker" + col4print])
+    print (sample + ' is printed')
     for marker in locus_list:
         row = ","
         for column in selected_columns:
@@ -100,4 +112,9 @@ for sample in sample_names:
                 else:
                     row = row + value + "," 
                 #print (row)
-        print (sample + "," + marker + row)             
+        #print (sample + "," + marker + row)
+        
+        f.writelines(["\n" + sample + "," + marker + row])
+    f.writelines(["\n\n"])
+f.close()        
+print ('done')        
