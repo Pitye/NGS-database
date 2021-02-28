@@ -347,7 +347,7 @@ def relationship_LR_estimation (sample_names, length_polymorphism_estimation, us
             "\n", \
             "\n" + sample_names[0] + ", allele_1, allele_2, PubMed_ID_1, PubMed_ID_2, no_reads_1, no_reads_2, CE_validation_1, CE_validation_2" + ",," + \
                 sample_names[1] + ", allele_1, allele_2, PubMed_ID_1, PubMed_ID_2, no_reads_1, no_reads_2, CE_validation_1, CE_validation_2"])
-    #f.close()
+
     for marker in markers:
         f.writelines(["\n" + marker + "," + sample_records_original[sample_names[0]][marker]['allele'][0] + "," + sample_records_original[sample_names[0]][marker]['allele'][1] + "," + \
                 sample_records_original[sample_names[0]][marker]['PubMed_ID'][0] + "," + sample_records_original[sample_names[0]][marker]['PubMed_ID'][1] + "," + \
@@ -362,7 +362,8 @@ def relationship_LR_estimation (sample_names, length_polymorphism_estimation, us
     f.writelines([ "\n\n\nLR_ESTIMATION\n", \
                 "\nlength_polymorphism_estimation: " + str(length_polymorphism_estimation), \
                 "\nuse_external_file_for_missing_markers: " + str(use_external_file_for_missing_markers)])
-    
+    missing_markers = missed_markers[sample_names[0]] + missed_markers[sample_names[1]]
+    missing_markers_set = set(missing_markers)
     for seq_lenght_type in seq_lenght_types:
         f.writelines([ "\n\n" + seq_lenght_type + "_ESTIMATION\n", \
                     "\nMarker, allele1, allele2, allele3, allele4, freq(p), freq(q), PI, FSI, GI/AI/HIS, First CI, LR-PI, LR-FSI, LR-GI/AI/HIS, LR-First CI" ])
@@ -376,7 +377,7 @@ def relationship_LR_estimation (sample_names, length_polymorphism_estimation, us
                                                 str(result[marker][seq_lenght_type]['calculations'][2]) + "," + str(result[marker][seq_lenght_type]['calculations'][3]) ])
     
         f.writelines(["\nRESULTS,,,,,,,,,,," + str(result_PI[seq_lenght_type]) + "," + str(result_FSI[seq_lenght_type]) + "," +  str(result_GI_AI_HIS[seq_lenght_type]) + "," + str(result_FirsCI[seq_lenght_type]), \
-                    "\n\nmissed markers:" + missed_marker ]) 
+                    "\n\nmissed markers:," + str(missing_markers_set) ]) 
     f.close()
     
     print ('markers evaluated for LR: ', markers_evaluated)
