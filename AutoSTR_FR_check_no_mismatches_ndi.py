@@ -10,7 +10,7 @@ from datetime import datetime
 
 def main():
     
-    print('please wait...')
+    
     in_directory = os.path.normpath('C:/NGS_forensic_database/xlsx_detail_reports') 
     out_directory = os.path.normpath('C:/NGS_forensic_database/csv_output') 
     xml_directory = os.path.normpath('C:/NGS_forensic_database/xml_CE') 
@@ -22,7 +22,7 @@ def main():
     autoSTR_FR_check_no_mismatches(in_directory, out_directory, xml_directory, CSV_CE_directory, reports_directory, no_reads_for_validation, CheckIfSampleInDatabase, dbPass)
 
 def autoSTR_FR_check_no_mismatches(in_directory, out_directory, xml_directory, CSV_CE_directory, reports_directory, no_reads_for_validation, CheckIfSampleInDatabase, dbPass):
-
+    print('please wait...')
     sheets = ['Autosomal STR Coverage', 'X STR Coverage', 'Y STR Coverage', 'iSNP Coverage']
     
     #delete all in OUT DIRECTORY
