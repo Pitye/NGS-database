@@ -1,4 +1,5 @@
 from AutoSTR_FR_check_no_mismatches_ndi import autoSTR_FR_check_no_mismatches
+from AutoSTR_FR_import2db_ndi import autoSTR_FR_import2db
 import os
 import sys
 
@@ -43,7 +44,7 @@ class NdiUi(QMainWindow):
         self._centralWidget.setLayout(self.generalLayout)
 
         self.buttonsModesLayout = QHBoxLayout()
-        self.buttonMode1 = QPushButton('Mode1')
+        self.buttonMode1 = QPushButton('CHECK/IMPORT')
         self.buttonMode1.clicked.connect(self.setMode1)
         # self.buttonMode1 = QPushButton('Mode1', clicked=self.setMode1)
         self.buttonMode2 = QPushButton('Mode2')
@@ -106,7 +107,7 @@ class NdiUi(QMainWindow):
         label.setText(file[0])
         
     def setDefaultModeButtonText(self):
-        self.buttonMode1.setText('Mode1')
+        self.buttonMode1.setText('CHECK/IMPORT')
         self.buttonMode2.setText('Mode2')
         self.buttonMode3.setText('Mode3')
         self.buttonMode4.setText('Mode4')
@@ -118,7 +119,7 @@ class NdiUi(QMainWindow):
             self.mode1set = True
         self.modeWidget.setCurrentWidget(self.mode1Widget)
         self.setDefaultModeButtonText()
-        self.buttonMode1.setText('<Mode1>')
+        self.buttonMode1.setText('<CHECK/IMPORT>')
 
     def generateMode1Widget(self):
         self.mode1Widget = QWidget()
@@ -142,7 +143,7 @@ class NdiUi(QMainWindow):
         self.mode1buttonDir4.clicked.connect(partial(self.getBrowseDirName, self.mode1labelDir4))
 
         self.mode1buttonDir5 = QPushButton("report_directory")
-        self.mode1labelDir5 = QLabel(os.path.normpath('C:/NGS_forensic_database/AutoSTR_check_no_mismatches'))
+        self.mode1labelDir5 = QLabel()
         self.mode1buttonDir5.clicked.connect(partial(self.getBrowseDirName, self.mode1labelDir5))
 
         self.mode1labelNumber = QLabel("no_reads_for_validation:")
@@ -154,7 +155,7 @@ class NdiUi(QMainWindow):
         self.mode1booleanCheckBox.setChecked(True)
 
         self.mode1scriptSelector = QComboBox()
-        self.mode1scriptSelector.addItems(["Script1", "Script2", "Script3", "Script4"])
+        self.mode1scriptSelector.addItems(["AutoSTR_check_no_mismatches", "AutoSTR_import2db", "Script3", "Script4"])
 
         self.mode1buttonRun = QPushButton("run")
         self.mode1buttonRun.clicked.connect(self.runMode1)
@@ -197,8 +198,9 @@ class NdiUi(QMainWindow):
         if script == 0:
             autoSTR_FR_check_no_mismatches(dir1, dir2, dir3, dir4, dir5, number, boolean, self.dbPassw.text())
             self.mode1labelState.setText("finished")
-        #elif script == 1:
-            #
+        elif script == 1:
+            autoSTR_FR_import2db(dir1, dir2, dir3, dir4, dir5, number, boolean, self.dbPassw.text())
+            self.mode1labelState.setText("finished")
         #elif script == 2:
             #
         #elif script == 3:
