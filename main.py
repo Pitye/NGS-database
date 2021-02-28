@@ -1,5 +1,6 @@
 from AutoSTR_FR_check_no_mismatches_ndi import autoSTR_FR_check_no_mismatches
 from AutoSTR_FR_import2db_ndi import autoSTR_FR_import2db
+from relationship_LR_estimation_ndi import relationship_LR_estimation
 import os
 import sys
 
@@ -47,7 +48,7 @@ class NdiUi(QMainWindow):
         self.buttonMode1 = QPushButton('CHECK/IMPORT')
         self.buttonMode1.clicked.connect(self.setMode1)
         # self.buttonMode1 = QPushButton('Mode1', clicked=self.setMode1)
-        self.buttonMode2 = QPushButton('Mode2')
+        self.buttonMode2 = QPushButton('RELATIONSHIP_ESTIMATION')
         self.buttonMode2.clicked.connect(self.setMode2)
         self.buttonMode3 = QPushButton('Mode3')
         self.buttonMode3.clicked.connect(self.setMode3)
@@ -108,7 +109,7 @@ class NdiUi(QMainWindow):
         
     def setDefaultModeButtonText(self):
         self.buttonMode1.setText('CHECK/IMPORT')
-        self.buttonMode2.setText('Mode2')
+        self.buttonMode2.setText('RELATIONSHIP_ESTIMATION')
         self.buttonMode3.setText('Mode3')
         self.buttonMode4.setText('Mode4')
 
@@ -213,45 +214,78 @@ class NdiUi(QMainWindow):
             self.mode2set = True
         self.modeWidget.setCurrentWidget(self.mode2Widget)
         self.setDefaultModeButtonText()
-        self.buttonMode2.setText('<Mode2>')
+        self.buttonMode2.setText('<RELATIONSHIP_ESTIMATION>')
 
     def generateMode2Widget(self):
         self.mode2Widget = QWidget()
         self.mode2Layout = QGridLayout()
 
         self.mode2sampleName1Label = QLabel("Sample name 1:")
-        self.mode2sampleName1Input = QLineEdit()
+        self.mode2sampleName1Input = QLineEdit("MS9-0,0065")
 
         self.mode2sampleName2Label = QLabel("Sample name 2:")
-        self.mode2sampleName2Input = QLineEdit()
+        self.mode2sampleName2Input = QLineEdit("MS9-0,0065")
 
-        self.mode2boolean1CheckBox = QCheckBox("Boolean1")
+        self.mode2boolean1CheckBox = QCheckBox("length_polymorphism_estimation")
 
-        self.mode2boolean2CheckBox = QCheckBox("Boolean2")
+        self.mode2boolean2CheckBox = QCheckBox("use_external_file_for_missing_markers")
 
-        self.mode2buttonDir1 = QPushButton("Dir1 Browse")
-        self.mode2labelDir1 = QLabel("Default")
+        self.mode2buttonDir1 = QPushButton("CE_profiles_directory")
+        self.mode2labelDir1 = QLabel("C:/NGS_forensic_database/relationship_LR_estimation/STR_lenght_profiles")
         self.mode2buttonDir1.clicked.connect(partial(self.getBrowseDirName, self.mode2labelDir1))
 
-        self.mode2buttonDir2 = QPushButton("Dir2 Browse")
-        self.mode2labelDir2 = QLabel("Default")
+        self.mode2buttonDir2 = QPushButton("CE_frequencies_directory")
+        self.mode2labelDir2 = QLabel("C:/NGS_forensic_database/relationship_LR_estimation/STR_lenght_frequencies")
         self.mode2buttonDir2.clicked.connect(partial(self.getBrowseDirName, self.mode2labelDir2))
 
+        self.mode2buttonDir3 = QPushButton("reports_directory")
+        self.mode2labelDir3 = QLabel("C:/NGS_forensic_database/relationship_LR_estimation/reports")
+        self.mode2buttonDir3.clicked.connect(partial(self.getBrowseDirName, self.mode2labelDir3))
+
         self.mode2buttonRun = QPushButton("run")
-        # self.mode2buttonRun.clicked.connect()
+        self.mode2buttonRun.clicked.connect(self.runMode2)
+        
+        self.mode2labelState = QLabel("")
 
         self.mode2Layout.addWidget(self.mode2sampleName1Label, 0, 0)
         self.mode2Layout.addWidget(self.mode2sampleName1Input, 0, 1)
         self.mode2Layout.addWidget(self.mode2sampleName2Label, 1, 0)
         self.mode2Layout.addWidget(self.mode2sampleName2Input, 1, 1)
         self.mode2Layout.addWidget(self.mode2boolean1CheckBox, 2, 0)
-        self.mode2Layout.addWidget(self.mode2boolean2CheckBox, 2, 1)
-        self.mode2Layout.addWidget(self.mode2buttonDir1, 3, 0)
-        self.mode2Layout.addWidget(self.mode2buttonDir2, 4, 0)
-        self.mode2Layout.addWidget(self.mode2buttonRun, 5, 0)
+        self.mode2Layout.addWidget(self.mode2boolean2CheckBox, 3, 0)
+        self.mode2Layout.addWidget(self.mode2buttonDir1, 4, 0)
+        self.mode2Layout.addWidget(self.mode2labelDir1, 4, 1)
+        self.mode2Layout.addWidget(self.mode2buttonDir2, 5, 0)
+        self.mode2Layout.addWidget(self.mode2labelDir2, 5, 1)
+        self.mode2Layout.addWidget(self.mode2buttonDir3, 6, 0)
+        self.mode2Layout.addWidget(self.mode2labelDir3, 6, 1)
+        self.mode2Layout.addWidget(self.mode2buttonRun, 7, 0)
+        self.mode2Layout.addWidget(self.mode2labelState, 8, 1)
 
         self.mode2Widget.setLayout(self.mode2Layout)
 
+    def addSamples(self):
+        sample1 = self.mode2sampleName1Input.text()
+        sample2 = self.mode2sampleName2Input.text()
+        sampleList = list()
+        sampleList.append(sample1)
+        sampleList.append(sample2)
+        return sampleList
+
+    
+    def runMode2 (self):
+        self.mode2labelState.setText("running")
+        self.mode2labelState.repaint()
+        
+        samples = self.addSamples()
+        dir1 = self.mode2labelDir1.text()
+        dir2 = self.mode2labelDir2.text()
+        dir3 = self.mode2labelDir3.text()
+        boolean1 = self.mode2boolean1CheckBox.isChecked()
+        boolean2 = self.mode2boolean2CheckBox.isChecked()
+        relationship_LR_estimation(samples, boolean1, boolean2, dir1, dir2, dir3, self.dbPassw.text())
+        self.mode2labelState.setText("finished")
+        
     def setMode3(self):
         if not self.mode3set:
             self.generateMode3Widget()
