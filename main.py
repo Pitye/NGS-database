@@ -2,6 +2,7 @@ from AutoSTR_FR_check_no_mismatches_ndi import autoSTR_FR_check_no_mismatches
 from AutoSTR_FR_import2db_ndi import autoSTR_FR_import2db
 from relationship_LR_estimation_ndi import relationship_LR_estimation
 from print_samples_ndi import print_samples
+from delete_samples_ndi import delete_samples
 import os
 import sys
 
@@ -342,8 +343,10 @@ class NdiUi(QMainWindow):
     def SelectedItems(self,item):
         if item == "columns":
             selectedItems = self.mode3columnsList.selectedItems()
-        if item == "category":
+        if item == "category_mode3":
             selectedItems = self.mode3categoriesList.selectedItems()
+        if item == "category_mode4":
+            selectedItems = self.mode4categoriesList.selectedItems()
         selectedItemsTextList = list()
         for selectedItem in selectedItems:
             selectedItemsTextList.append(selectedItem.text())
@@ -355,7 +358,7 @@ class NdiUi(QMainWindow):
         file1 = self.mode3labelFile1.text()
         file2 = self.mode3labelFile2.text()
         dir3 = self.mode3labelDir3.text()
-        categoriesList = self.SelectedItems ("category")
+        categoriesList = self.SelectedItems ("category_mode3")
         columnsList = self.SelectedItems ("columns")
         print_samples(file1, file2, dir3, categoriesList, columnsList, self.dbPassw.text())
         self.mode3labelState.setText("finished")
@@ -367,29 +370,40 @@ class NdiUi(QMainWindow):
             self.mode4set = True
         self.modeWidget.setCurrentWidget(self.mode4Widget)
         self.setDefaultModeButtonText()
-        self.buttonMode4.setText('<Mode4>')
+        self.buttonMode4.setText('DELETE_SAMPLES')
 
     def generateMode4Widget(self):
         self.mode4Widget = QWidget()
         self.mode4Layout = QGridLayout()
 
-        self.mode4buttonDir1 = QPushButton("Dir1 Browse")
-        self.mode4labelDir1 = QLabel("Default")
-        self.mode4buttonDir1.clicked.connect(partial(self.getBrowseDirName, self.mode4labelDir1))
+        self.mode4buttonFile1 = QPushButton("sample_list")
+        self.mode4labelFile1 = QLabel("C:/NGS_forensic_database/delete_samples/delete_sample.txt")
+        self.mode4buttonFile1.clicked.connect(partial(self.getBrowseFileName, self.mode4labelFile1))
 
         self.mode4categoriesList = QListWidget()
-        self.mode4categoriesList.addItems(["category1", "category2"])
+        self.mode4categoriesList.addItems(["AutoSTR", "Y-STR"])
         self.mode4categoriesList.setSelectionMode(QAbstractItemView.MultiSelection)
 
         self.mode4buttonRun = QPushButton("run")
-        # self.mode4buttonRun.clicked.connect()
+        self.mode4buttonRun.clicked.connect(self.runMode4)
+        
+        self.mode4labelState = QLabel("")
 
-        self.mode4Layout.addWidget(self.mode4buttonDir1, 0, 0)
-        self.mode4Layout.addWidget(self.mode4labelDir1, 0, 1)
+        self.mode4Layout.addWidget(self.mode4buttonFile1, 0, 0)
+        self.mode4Layout.addWidget(self.mode4labelFile1, 0, 1)
         self.mode4Layout.addWidget(self.mode4categoriesList, 1, 0)
         self.mode4Layout.addWidget(self.mode4buttonRun, 2, 0)
+        self.mode4Layout.addWidget(self.mode4labelState, 3, 0)
 
         self.mode4Widget.setLayout(self.mode4Layout)
+
+    def runMode4 (self):
+        self.mode4labelState.setText("running")
+        self.mode4labelState.repaint()
+        file1 = self.mode4labelFile1.text()
+        categoriesList = self.SelectedItems ("category_mode4")
+        delete_samples(file1, categoriesList, self.dbPassw.text())
+        self.mode4labelState.setText("finished")
 
 def main():
     ndi = QApplication([])
