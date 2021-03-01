@@ -1,6 +1,7 @@
 from AutoSTR_FR_check_no_mismatches_ndi import autoSTR_FR_check_no_mismatches
 from AutoSTR_FR_import2db_ndi import autoSTR_FR_import2db
 from relationship_LR_estimation_ndi import relationship_LR_estimation
+from print_samples_ndi import print_samples
 import os
 import sys
 
@@ -50,9 +51,9 @@ class NdiUi(QMainWindow):
         # self.buttonMode1 = QPushButton('Mode1', clicked=self.setMode1)
         self.buttonMode2 = QPushButton('RELATIONSHIP_ESTIMATION')
         self.buttonMode2.clicked.connect(self.setMode2)
-        self.buttonMode3 = QPushButton('Mode3')
+        self.buttonMode3 = QPushButton('PRINT_SAMPLES')
         self.buttonMode3.clicked.connect(self.setMode3)
-        self.buttonMode4 = QPushButton('Mode4')
+        self.buttonMode4 = QPushButton('DELETE_SAMPLES')
         self.buttonMode4.clicked.connect(self.setMode4)
         self.buttonsModesLayout.addWidget(self.buttonMode1)
         self.buttonsModesLayout.addWidget(self.buttonMode2)
@@ -110,8 +111,8 @@ class NdiUi(QMainWindow):
     def setDefaultModeButtonText(self):
         self.buttonMode1.setText('CHECK/IMPORT')
         self.buttonMode2.setText('RELATIONSHIP_ESTIMATION')
-        self.buttonMode3.setText('Mode3')
-        self.buttonMode4.setText('Mode4')
+        self.buttonMode3.setText('PRINT_SAMPLES')
+        self.buttonMode4.setText('DELETE_SAMPLES')
 
     def setMode1(self):
         if not self.mode1set:
@@ -293,53 +294,71 @@ class NdiUi(QMainWindow):
             self.mode3set = True
         self.modeWidget.setCurrentWidget(self.mode3Widget)
         self.setDefaultModeButtonText()
-        self.buttonMode3.setText('<Mode3>')
+        self.buttonMode3.setText('<PRINT_SAMPLES>')
 
     def generateMode3Widget(self):
         self.mode3Widget = QWidget()
         self.mode3Layout = QGridLayout()
 
-        self.mode3buttonFile1 = QPushButton("File1 Browse")
-        self.mode3labelFile1 = QLabel("Default")
+        self.mode3buttonFile1 = QPushButton("sample_list")
+        self.mode3labelFile1 = QLabel("C:/NGS_forensic_database/print_samples/print_sample.txt")
         self.mode3buttonFile1.clicked.connect(partial(self.getBrowseFileName, self.mode3labelFile1))
 
-        self.mode3buttonDir2 = QPushButton("Dir2 Browse")
-        self.mode3labelDir2 = QLabel("Default")
-        self.mode3buttonDir2.clicked.connect(partial(self.getBrowseDirName, self.mode3labelDir2))
+        self.mode3buttonFile2 = QPushButton("locus_order")
+        self.mode3labelFile2 = QLabel("C:/NGS_forensic_database/print_samples/locus_order.txt")
+        self.mode3buttonFile2.clicked.connect(partial(self.getBrowseFileName, self.mode3labelFile2))
         
-        self.mode3buttonDir3 = QPushButton("Dir3 Browse")
-        self.mode3labelDir3 = QLabel("Default")
+        self.mode3buttonDir3 = QPushButton("reports_directory")
+        self.mode3labelDir3 = QLabel("C:/NGS_forensic_database/print_samples/prints")
         self.mode3buttonDir3.clicked.connect(partial(self.getBrowseDirName, self.mode3labelDir3))
 
         self.mode3categoriesList = QListWidget()
-        self.mode3categoriesList.addItems(["category1", "category2"])
+        self.mode3categoriesList.addItems(["AutoSTR", "Y-STR"])
         self.mode3categoriesList.setSelectionMode(QAbstractItemView.MultiSelection)
 
+        #columns = ['allele', 'seq_name', 'PubMed_ID', 'sequence', 'no_reads', 'CE_validation', 'head_id', 'avg_no_reads', 'count_seq', 'frequency']
         self.mode3columnsList = QListWidget()
-        self.mode3columnsList.addItems(["column1", "column2", "column3", "column4", "column5", "column6", "column7", "column8", "column9", "column10", "column11"])
+        self.mode3columnsList.addItems(["allele", "seq_name", "PubMed_ID", "sequence", "no_reads", "CE_validation", "head_id", "avg_no_reads", "count_seq", "frequency"])
         self.mode3columnsList.setSelectionMode(QAbstractItemView.MultiSelection)
 
         self.mode3buttonRun = QPushButton("run")
-        self.mode3buttonRun.clicked.connect(self.printSelectedItemsTest)
+        self.mode3buttonRun.clicked.connect(self.runMode3)
+
+        self.mode3labelState = QLabel("")
 
         self.mode3Layout.addWidget(self.mode3buttonFile1, 0, 0)
         self.mode3Layout.addWidget(self.mode3labelFile1, 0, 1)
-        self.mode3Layout.addWidget(self.mode3buttonDir2, 1, 0)
-        self.mode3Layout.addWidget(self.mode3labelDir2, 1, 1)
+        self.mode3Layout.addWidget(self.mode3buttonFile2, 1, 0)
+        self.mode3Layout.addWidget(self.mode3labelFile2, 1, 1)
         self.mode3Layout.addWidget(self.mode3buttonDir3, 2, 0)
         self.mode3Layout.addWidget(self.mode3labelDir3, 2, 1)
         self.mode3Layout.addWidget(self.mode3categoriesList, 3, 0)
         self.mode3Layout.addWidget(self.mode3columnsList, 3, 1)
         self.mode3Layout.addWidget(self.mode3buttonRun, 4, 0)
+        self.mode3Layout.addWidget(self.mode3labelState, 5, 1)
 
         self.mode3Widget.setLayout(self.mode3Layout)
 
-    def printSelectedItemsTest(self):
-        selectedItems = self.mode3columnsList.selectedItems()
+    def SelectedItems(self,item):
+        if item == "columns":
+            selectedItems = self.mode3columnsList.selectedItems()
+        if item == "category":
+            selectedItems = self.mode3categoriesList.selectedItems()
         selectedItemsTextList = list()
         for selectedItem in selectedItems:
             selectedItemsTextList.append(selectedItem.text())
-        print(selectedItemsTextList)
+        return selectedItemsTextList
+
+    def runMode3 (self):
+        self.mode3labelState.setText("running")
+        self.mode3labelState.repaint()
+        file1 = self.mode3labelFile1.text()
+        file2 = self.mode3labelFile2.text()
+        dir3 = self.mode3labelDir3.text()
+        categoriesList = self.SelectedItems ("category")
+        columnsList = self.SelectedItems ("columns")
+        print_samples(file1, file2, dir3, categoriesList, columnsList, self.dbPassw.text())
+        self.mode3labelState.setText("finished")
 
     def setMode4(self):
         if not self.mode4set:
