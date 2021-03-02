@@ -7,6 +7,7 @@ import operator
 from collections import Counter
 import MySQLdb
 from datetime import datetime
+import xlwt
 
 def main():
     
@@ -18,7 +19,7 @@ def main():
     reports_directory = os.path.normpath('C:/NGS_forensic_database/AutoSTR_check_no_mismatches')
     no_reads_for_validation = 150
     CheckIfSampleInDatabase = True
-    dbPass = 'Coufalka*1'
+    dbPass = 'XXX'
     autoSTR_FR_check_no_mismatches(in_directory, out_directory, xml_directory, CSV_CE_directory, reports_directory, no_reads_for_validation, CheckIfSampleInDatabase, dbPass)
 
 def autoSTR_FR_check_no_mismatches(in_directory, out_directory, xml_directory, CSV_CE_directory, reports_directory, no_reads_for_validation, CheckIfSampleInDatabase, dbPass):
@@ -238,8 +239,10 @@ def autoSTR_FR_check_no_mismatches(in_directory, out_directory, xml_directory, C
 
     now = datetime.now()
     dt_string = now.strftime("%Y%m%d%H%M%S")
-    report_path_name = reports_directory + os.path.normpath('/') + 'report_AutoSTR_check_no_mismstches_' + dt_string + '.csv'
+    report_path_name = reports_directory + os.path.normpath('/') + 'report_AutoSTR_check_no_mismatches_' + dt_string + '.csv'
+    report_path_name_xls = reports_directory + os.path.normpath('/') + 'report_AutoSTR_check_no_mismatches_' + dt_string + '.xls'
     f = open (report_path_name, 'w+')
+    f.writelines(["*** ANDY - NGS data interpreter - REPORT ***\n\n"])
     f.writelines(["sample_name, marker, genotype_CE,,genotype_NGS,," ])
 
     #validating 
@@ -301,7 +304,7 @@ def autoSTR_FR_check_no_mismatches(in_directory, out_directory, xml_directory, C
 
     if CheckIfSampleInDatabase:
         f.writelines(["\n\n CHECK IF SAMPLES IN DATABASE"])
-        db=MySQLdb.connect("localhost", "root", dbPass, "NGS_FORENSIC_test")
+        db=MySQLdb.connect("localhost", "root", dbPass, "NGS_FORENSIC")
         c = db.cursor()
         sample_names = (list(Auto_STR_Data.keys()))
         for sample_name in sample_names:
@@ -316,6 +319,15 @@ def autoSTR_FR_check_no_mismatches(in_directory, out_directory, xml_directory, C
                 f.writelines(["\n" + sample_name + "," + " entry already exists in database"])
         db.close()
     f.close()
+    wb = xlwt.Workbook()
+    sh = wb.add_sheet('report')
+    with open(report_path_name, 'r') as fc:
+        reader = csv.reader(fc)
+        for r, row in enumerate(reader):
+            for c, val in enumerate(row):
+                sh.write(r, c, val)
+    wb.save(report_path_name_xls)
+    
     print('report created')
     print('all done')
 
