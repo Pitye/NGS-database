@@ -7,6 +7,7 @@ import operator
 from collections import Counter
 import MySQLdb
 from datetime import datetime
+import xlwt
 
 def main():
 
@@ -18,7 +19,7 @@ def main():
     reports_directory = os.path.normpath('C:/NGS_forensic_database/AutoSTR_import2db')
     no_reads_for_validation = 150
     CheckIfSampleInDatabase = True
-    dbPass = 'Coufalka*1'
+    dbPass = 'XXX'
     autoSTR_FR_import2db(in_directory, out_directory, xml_directory, CSV_CE_directory, reports_directory, no_reads_for_validation, CheckIfSampleInDatabase, dbPass)
 
 def autoSTR_FR_import2db(in_directory, out_directory, xml_directory, CSV_CE_directory, reports_directory, no_reads_for_validation, CheckIfSampleInDatabase, dbPass):
@@ -237,7 +238,9 @@ def autoSTR_FR_import2db(in_directory, out_directory, xml_directory, CSV_CE_dire
     now = datetime.now()
     dt_string = now.strftime("%Y%m%d%H%M%S")
     report_path_name = reports_directory + os.path.normpath('/') + 'report_AutoSTR_import2db_' + dt_string + '.csv'
+    report_path_name_xls = reports_directory + os.path.normpath('/') + 'report_AutoSTR_import2db_' + dt_string + '.xls'
     f = open (report_path_name, 'w+')
+    f.writelines(["*** ANDY - NGS data interpreter - REPORT ***\n\n"])
     
     #validating 
     for sample_NGS in samples_NGS:
@@ -347,6 +350,15 @@ def autoSTR_FR_import2db(in_directory, out_directory, xml_directory, CSV_CE_dire
     
     db.close()
     f.close()
+    wb = xlwt.Workbook()
+    sh = wb.add_sheet('report')
+    with open(report_path_name, 'r') as fc:
+        reader = csv.reader(fc)
+        for r, row in enumerate(reader):
+            for c, val in enumerate(row):
+                sh.write(r, c, val)
+    wb.save(report_path_name_xls)
+    
     print('report created')
     print('all done')
 
