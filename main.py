@@ -1,5 +1,7 @@
 from AutoSTR_FR_check_no_mismatches_ndi import autoSTR_FR_check_no_mismatches
 from AutoSTR_FR_import2db_ndi import autoSTR_FR_import2db
+from Y_STR_FR_check_no_mismatches_ndi import Y_STR_FR_check_no_mismatches
+from Y_STR_FR_import2db_ndi import Y_STR_FR_import2db
 from relationship_LR_estimation_ndi import relationship_LR_estimation
 from print_samples_ndi import print_samples
 from delete_samples_ndi import delete_samples
@@ -38,8 +40,8 @@ __author__ = 'dh8'
 class NdiUi(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('NGS data interpreter')
-        self.setFixedSize(480, 480)
+        self.setWindowTitle('ANDY - NGS data interpreter')
+        self.setFixedSize(700, 480)
 
         self.generalLayout = QVBoxLayout()
         self._centralWidget = QWidget(self)
@@ -128,7 +130,7 @@ class NdiUi(QMainWindow):
         self.mode1Widget = QWidget()
         self.mode1Layout = QGridLayout()
 
-        self.mode1buttonDir1 = QPushButton("in_directory")
+        self.mode1buttonDir1 = QPushButton("in_directory Illumina")
         self.mode1labelDir1 = QLabel(os.path.normpath('C:/NGS_forensic_database/xlsx_detail_reports'))
         self.mode1buttonDir1.clicked.connect(partial(self.getBrowseDirName, self.mode1labelDir1))
         # self.mode1buttonDir1.clicked.connect(lambda: self.getBrowseDirName(self.mode1labelDir1))
@@ -158,7 +160,7 @@ class NdiUi(QMainWindow):
         self.mode1booleanCheckBox.setChecked(True)
 
         self.mode1scriptSelector = QComboBox()
-        self.mode1scriptSelector.addItems(["AutoSTR_check_no_mismatches", "AutoSTR_import2db", "Script3", "Script4"])
+        self.mode1scriptSelector.addItems(["AutoSTR_check_no_mismatches", "AutoSTR_import2db", "Y-STR_check_no_mismatches", "Y-STR_import2db"])
 
         self.mode1buttonRun = QPushButton("run")
         self.mode1buttonRun.clicked.connect(self.runMode1)
@@ -204,10 +206,12 @@ class NdiUi(QMainWindow):
         elif script == 1:
             autoSTR_FR_import2db(dir1, dir2, dir3, dir4, dir5, number, boolean, self.dbPassw.text())
             self.mode1labelState.setText("finished")
-        #elif script == 2:
-            #
-        #elif script == 3:
-            #
+        elif script == 2:
+            Y_STR_FR_check_no_mismatches(dir1, dir2, dir3, dir4, dir5, number, boolean, self.dbPassw.text())
+            self.mode1labelState.setText("finished")
+        elif script == 3:
+            Y_STR_FR_import2db(dir1, dir2, dir3, dir4, dir5, number, boolean, self.dbPassw.text())
+            self.mode1labelState.setText("finished")
 
     def setMode2(self):
         if not self.mode2set:
@@ -223,10 +227,10 @@ class NdiUi(QMainWindow):
         self.mode2Layout = QGridLayout()
 
         self.mode2sampleName1Label = QLabel("Sample name 1:")
-        self.mode2sampleName1Input = QLineEdit("MS9-0,0065")
+        self.mode2sampleName1Input = QLineEdit()
 
         self.mode2sampleName2Label = QLabel("Sample name 2:")
-        self.mode2sampleName2Input = QLineEdit("MS9-0,0065")
+        self.mode2sampleName2Input = QLineEdit()
 
         self.mode2boolean1CheckBox = QCheckBox("length_polymorphism_estimation")
 
@@ -370,7 +374,7 @@ class NdiUi(QMainWindow):
             self.mode4set = True
         self.modeWidget.setCurrentWidget(self.mode4Widget)
         self.setDefaultModeButtonText()
-        self.buttonMode4.setText('DELETE_SAMPLES')
+        self.buttonMode4.setText('<DELETE_SAMPLES>')
 
     def generateMode4Widget(self):
         self.mode4Widget = QWidget()
@@ -393,7 +397,7 @@ class NdiUi(QMainWindow):
         self.mode4Layout.addWidget(self.mode4labelFile1, 0, 1)
         self.mode4Layout.addWidget(self.mode4categoriesList, 1, 0)
         self.mode4Layout.addWidget(self.mode4buttonRun, 2, 0)
-        self.mode4Layout.addWidget(self.mode4labelState, 3, 0)
+        self.mode4Layout.addWidget(self.mode4labelState, 1, 1)
 
         self.mode4Widget.setLayout(self.mode4Layout)
 
