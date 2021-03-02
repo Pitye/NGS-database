@@ -9,6 +9,7 @@ from collections import Counter
 import MySQLdb
 import math
 from datetime import datetime
+import xlwt
 
 #import mysql.connector
 #from mysql.connector import Error
@@ -22,7 +23,7 @@ def main():
     directory_STR_lenght_profiles = os.path.normpath('C:/NGS_forensic_database/relationship_LR_estimation/STR_lenght_profiles')
     directory_STR_lenght_frequencies = os.path.normpath('C:/NGS_forensic_database/relationship_LR_estimation/STR_lenght_frequencies')
     directory_reports = os.path.normpath('C:/NGS_forensic_database/relationship_LR_estimation/reports')
-    dbPass = 'Coufalka*1'
+    dbPass = 'XXX'
     
     relationship_LR_estimation (sample_names, length_polymorphism_estimation, use_external_file_for_missing_markers, directory_STR_lenght_profiles, directory_STR_lenght_frequencies, directory_reports, dbPass)
     
@@ -340,8 +341,9 @@ def relationship_LR_estimation (sample_names, length_polymorphism_estimation, us
     now = datetime.now()
     dt_string = now.strftime("%Y%m%d%H%M%S")
     report_path_name = directory_reports + os.path.normpath('/') + 'report_' + sample_names[0] + '_' + sample_names[1] + '_' + dt_string + '.csv'
+    report_path_name_xls = directory_reports + os.path.normpath('/') + 'report_' + sample_names[0] + '_' + sample_names[1] + '_' + dt_string + '.xls'
     f = open (report_path_name, 'w+')
-    f.writelines([ "RELATIONSHIP_LR_ESTIMATION_REPORT", \
+    f.writelines([ "*** ANDY - NGS data interpreter - RELATIONSHIP_LR_ESTIMATION_REPORT ***", \
             "\n\n", \
             "DATA SELECTED FROM DATABASE", \
             "\n", \
@@ -379,6 +381,14 @@ def relationship_LR_estimation (sample_names, length_polymorphism_estimation, us
         f.writelines(["\nRESULTS,,,,,,,,,,," + str(result_PI[seq_lenght_type]) + "," + str(result_FSI[seq_lenght_type]) + "," +  str(result_GI_AI_HIS[seq_lenght_type]) + "," + str(result_FirsCI[seq_lenght_type]), \
                     "\n\nmissed markers:," + str(missing_markers_set) ]) 
     f.close()
+    wb = xlwt.Workbook()
+    sh = wb.add_sheet('report')
+    with open(report_path_name, 'r') as fc:
+        reader = csv.reader(fc)
+        for r, row in enumerate(reader):
+            for c, val in enumerate(row):
+                sh.write(r, c, val)
+    wb.save(report_path_name_xls)
     
     print ('markers evaluated for LR: ', markers_evaluated)
     print ('report exported')
