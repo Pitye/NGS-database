@@ -25,7 +25,25 @@ def main():
 def Y_STR_FR_check_no_mismatches(in_directory, out_directory, xml_directory, CSV_CE_directory, reports_directory, no_reads_for_validation_Y, CheckIfSampleInDatabase, dbPass):
     print('please wait...')
     sheets = ['Autosomal STR Coverage', 'Y STR Coverage', 'X STR Coverage', 'iSNP Coverage']
+    #delete all in OUT DIRECTORY
+    shutil.rmtree(out_directory)
+    os.makedirs(out_directory)
     
+    #create OUT DIRECTORIES_A,Y,X,i in CSV directory
+    for sheet in sheets:
+        os.makedirs(out_directory + os.path.normpath('/') + sheet)
+    
+    #create CSV files to OUT DIRECTORIES_A,Y,X
+    xlsx_list = os.listdir(in_directory)
+    for file in xlsx_list:
+        if file.endswith('.xlsx'):
+            for sheet in sheets:
+                path_xlsx = in_directory + os.path.normpath('/') + file
+                #path_csv = out_directory + file[0:-5] + '_' + sheet[0] + '.csv'
+                path_csv = out_directory + os.path.normpath('/') + sheet + os.path.normpath('/') + file[0:-5] + '_' + sheet[0] + '.csv'
+                df = pd.read_excel(path_xlsx, sheet, header=None)
+                df.to_csv(path_csv, header=None, index=None)
+    print('xlsx2csv done')
 
     #reading data from XML files to dictionary Data_CE for validating Auto_STR_Data
     def read_XML_file(path):    
