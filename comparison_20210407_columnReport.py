@@ -9,6 +9,7 @@ GM_csv_list_0 = os.listdir(in_GeneMarker_directory)
 SR_csv_list_0 = os.listdir(in_STRaitRazor_directory)
 PowerSeq_markers_heteroyzgozity_dict = {'Amelogenin': 0.5, 'D1S1656': 0.5,'TPOX' : 0.5,'D2S441' : 0.5,'D2S1338' : 0.5,'D3S1358' : 0.5,'FGA' : 0.5,'D5S818' : 0.5,'CSF1PO' : 0.5,'D7S820' : 0.5,'D8S1179' : 0.5,'D10S1248' : 0.5,'TH01': 0.5,'vWA' : 0.5,'D12S391' : 0.5,'D13S317' : 0.5,'PentaE' : 0.5,'D16S539' : 0.5,'D18S51' : 0.5,'D19S433' : 0.5,'D21S11' : 0.5,'PentaD' : 0.5,'D22S1045' : 0.5, 'DYS19' : 0.5, 'DYS385a/b' : 0.5}
 PowerSeq_markers = list(PowerSeq_markers_heteroyzgozity_dict.keys())
+GM_treshold = 10
 
 GM_Auto_STR_Data = {}
 GM_Auto_STR_Head = {}
@@ -84,8 +85,9 @@ for file in GM_csv_list_0:
                             if row[9].isnumeric(): 
                                 GM_row_selected = [row[0], row[1], row[10], row[9], row[18]]
                                 #print(GM_row_selected)
-                                GM_sample_raw_dict[row[0]].append(GM_row_selected)
-                                GM_Auto_STR_Data_raw[GM_sample_name] = GM_sample_raw_dict
+                                if int(GM_row_selected[3])  >= GM_treshold:
+                                    GM_sample_raw_dict[row[0]].append(GM_row_selected)
+                                    GM_Auto_STR_Data_raw[GM_sample_name] = GM_sample_raw_dict
                         
                         else:
                             print ('shortRow', GM_sample_name, row[0] )
@@ -94,8 +96,9 @@ for file in GM_csv_list_0:
                             if row[8].isnumeric(): 
                                 GM_row_selected = [row[0], row[1], row[9], row[8], row[17]]
                                 #print(GM_row_selected)
-                                GM_sample_raw_dict[row[0]].append(GM_row_selected)
-                                GM_Auto_STR_Data_raw[GM_sample_name] = GM_sample_raw_dict
+                                if int(GM_row_selected[3])  >= GM_treshold:
+                                    GM_sample_raw_dict[row[0]].append(GM_row_selected)
+                                    GM_Auto_STR_Data_raw[GM_sample_name] = GM_sample_raw_dict
                         else:
                             print ('shortRow', GM_sample_name, row[0] )
         if ColumnReportIsPresent:
