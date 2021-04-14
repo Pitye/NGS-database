@@ -8,8 +8,8 @@ from delete_samples_ndi import delete_samples
 import os
 import sys
 
-from MySQLdb import connect
-
+#from MySQLdb import connect
+from mysql.connector import connect
 from functools import partial
 
 from PyQt5.QtWidgets import QApplication
@@ -95,7 +95,8 @@ class NdiUi(QMainWindow):
         
     def tryDbConnection(self):
         try:
-            db = connect("localhost", "root", self.dbPassw.text(), "NGS_FORENSIC")
+            #db = connect("localhost", "root", self.dbPassw.text(), "NGS_FORENSIC")
+            db = connect(user ="root", password=self.dbPassw.text(), database="NGS_FORENSIC")
         except:
             self.tryResult.setText('Connection failed')
             return
