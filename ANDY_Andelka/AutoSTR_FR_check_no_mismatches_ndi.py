@@ -306,12 +306,12 @@ def autoSTR_FR_check_no_mismatches(in_directory, out_directory, xml_directory, C
     if CheckIfSampleInDatabase:
         f.writelines(["\n\n CHECK IF SAMPLES IN DATABASE"])
         #db=MySQLdb.connect("localhost", "root", dbPass, "NGS_FORENSIC")
-        db=MySQLdb.connect(user="root", password=dbPass, database="NGS_FORENSIC")
+        db=MySQLdb.connect(user="root", password=dbPass, database="ngs_forensic")
         #c = db.cursor()
         c = db.cursor(buffered=True)
         sample_names = (list(Auto_STR_Data.keys()))
         for sample_name in sample_names:
-            select_head_id = "SELECT id FROM Heads_flankingReg WHERE sample_name = '%s'" % (sample_name)
+            select_head_id = "SELECT id FROM heads_flankingreg WHERE sample_name = '%s'" % (sample_name)
             c.execute(select_head_id)
             row_count = c.rowcount
             if row_count == 0:

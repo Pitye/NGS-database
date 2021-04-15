@@ -297,7 +297,7 @@ def autoSTR_FR_import2db(in_directory, out_directory, xml_directory, CSV_CE_dire
     
     #insert data from 'Auto_STR_Head' and 'Auto_STR_Data' to MySQL NGS_FORENSIC database (create dtbschema by querries in sql file)'
     #db=MySQLdb.connect("localhost", "root", dbPass, "NGS_FORENSIC")
-    db=MySQLdb.connect(user="root", password=dbPass, database="NGS_FORENSIC")
+    db=MySQLdb.connect(user="root", password=dbPass, database="ngs_forensic")
     #c = db.cursor()
     c = db.cursor(buffered=True)
     sample_names = (list(Auto_STR_Data.keys()))
@@ -311,7 +311,7 @@ def autoSTR_FR_import2db(in_directory, out_directory, xml_directory, CSV_CE_dire
         
         # check if sample is already in database
         if CheckIfSampleInDatabase: 
-            select_head_id = "SELECT id FROM Heads_flankingReg WHERE sample_name = '%s'" % (sample_name)
+            select_head_id = "SELECT id FROM heads_flankingreg WHERE sample_name = '%s'" % (sample_name)
             c.execute(select_head_id)
             row_count = c.rowcount
         else:
@@ -319,12 +319,12 @@ def autoSTR_FR_import2db(in_directory, out_directory, xml_directory, CSV_CE_dire
         
         if row_count == 0:
             
-            insert_head = "INSERT INTO Heads_flankingReg (sample_name, project, analysis, run, gender, created, no_mismatches) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%d')" % (sample_name, pr, an, ru, ge, cr, nm) 
+            insert_head = "INSERT INTO heads_flankingreg (sample_name, project, analysis, run, gender, created, no_mismatches) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%d')" % (sample_name, pr, an, ru, ge, cr, nm)
             c.execute(insert_head)
             db.commit()
             #print(sample_name, " inserted in database")
             f.writelines(["\n" + sample_name + "," + " inserted in database"])
-            select_head_id = "SELECT id FROM Heads_flankingReg WHERE sample_name = '%s' AND \
+            select_head_id = "SELECT id FROM heads_flankingreg WHERE sample_name = '%s' AND \
                                                     project = '%s' AND \
                                                     analysis = '%s' AND \
                                                     run = '%s' AND \
@@ -340,7 +340,7 @@ def autoSTR_FR_import2db(in_directory, out_directory, xml_directory, CSV_CE_dire
                     nr = int(Auto_STR_Data[sample_name][marker][x][3])
                     seq = Auto_STR_Data[sample_name][marker][x][4]
                     val = Auto_STR_Data[sample_name][marker][x][5]
-                    insert_Auto_STR = "INSERT INTO AutoSTRdata_flankingReg (sample_name, marker, allele, sequence, no_reads, CE_validation, head_id) \
+                    insert_Auto_STR = "INSERT INTO autostrdata_flankingreg (sample_name, marker, allele, sequence, no_reads, CE_validation, head_id) \
                     VALUES ('%s', '%s', '%s', '%s', '%d', '%s', '%d')" % (sample_name, marker, al, seq, nr, val, head_id)
                     c.execute(insert_Auto_STR)
                     db.commit()

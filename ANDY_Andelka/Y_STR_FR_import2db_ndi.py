@@ -303,7 +303,7 @@ def Y_STR_FR_import2db(in_directory, out_directory, xml_directory, CSV_CE_direct
 
     #insert data from 'Auto_STR_Head' and 'Auto_STR_Data' to MySQL NGS_FORENSIC database (create dtbschema by querries in sql file)'
     #db=MySQLdb.connect("localhost", "root", dbPass, "NGS_FORENSIC")
-    db=MySQLdb.connect(user="root", password=dbPass, database="NGS_FORENSIC")
+    db=MySQLdb.connect(user="root", password=dbPass, database="ngs_forensic")
     #c = db.cursor()
     c = db.cursor(buffered=True)
     sample_names_Y = (list(Y_STR_Data.keys()))
@@ -317,19 +317,19 @@ def Y_STR_FR_import2db(in_directory, out_directory, xml_directory, CSV_CE_direct
         
         # check if sample is already in database
         if CheckIfSampleInDatabase: 
-            select_head_id = "SELECT id FROM Heads_Y_flankingReg WHERE sample_name = '%s'" % (sample_name_Y)
+            select_head_id = "SELECT id FROM heads_y_flankingreg WHERE sample_name = '%s'" % (sample_name_Y)
             c.execute(select_head_id)
             row_count = c.rowcount
         else:
             row_count = 0
         
         if row_count == 0:
-            insert_head_Y = "INSERT INTO Heads_Y_flankingReg (sample_name, project, analysis, run, gender, created, no_mismatches_Y) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%d')" % (sample_name_Y, pr, an, ru, ge, cr, nm) 
+            insert_head_Y = "INSERT INTO heads_y_flankingreg (sample_name, project, analysis, run, gender, created, no_mismatches_Y) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%d')" % (sample_name_Y, pr, an, ru, ge, cr, nm)
             c.execute(insert_head_Y)
             db.commit()
             print(sample_name_Y, " inserted in database")
             f.writelines(["\n" + sample_name_Y + "," + " was inserted in database"])
-            select_head_Y_id = "SELECT id FROM Heads_Y_flankingReg WHERE sample_name = '%s' AND \
+            select_head_Y_id = "SELECT id FROM Heads_y_flankingreg WHERE sample_name = '%s' AND \
                                                      project = '%s' AND \
                                                      analysis = '%s' AND \
                                                      run = '%s' AND \
@@ -346,7 +346,7 @@ def Y_STR_FR_import2db(in_directory, out_directory, xml_directory, CSV_CE_direct
                     nr = int(Y_STR_Data[sample_name_Y][marker_Y][x][3])
                     seq = Y_STR_Data[sample_name_Y][marker_Y][x][4]
                     val = Y_STR_Data[sample_name_Y][marker_Y][x][5]
-                    insert_Y_STR = "INSERT INTO Y_STRdata_flankingReg (sample_name, marker, allele, sequence, no_reads, CE_validation, head_Y_id) \
+                    insert_Y_STR = "INSERT INTO y_strdata_flankingreg (sample_name, marker, allele, sequence, no_reads, CE_validation, head_Y_id) \
                     VALUES ('%s', '%s', '%s', '%s', '%d', '%s', '%d')" % (sample_name_Y, marker_Y, al, seq, nr, val, head_Y_id)
                     c.execute(insert_Y_STR)
                     db.commit()

@@ -96,7 +96,7 @@ class NdiUi(QMainWindow):
     def tryDbConnection(self):
         try:
             #db = connect("localhost", "root", self.dbPassw.text(), "NGS_FORENSIC")
-            db = connect(user ="root", password=self.dbPassw.text(), database="NGS_FORENSIC")
+            db = connect(user ="root", password=self.dbPassw.text(), database="ngs_forensic")
         except:
             self.tryResult.setText('Connection failed')
             return
@@ -132,20 +132,20 @@ class NdiUi(QMainWindow):
         self.mode1Layout = QGridLayout()
 
         self.mode1buttonDir1 = QPushButton("in_directory Illumina")
-        self.mode1labelDir1 = QLabel(os.path.normpath('C:/NGS_forensic_database/xlsx_detail_reports'))
+        self.mode1labelDir1 = QLabel(os.path.normpath('/home/pavla/NGS_forensic_database/xlsx_detail_reports'))
         self.mode1buttonDir1.clicked.connect(partial(self.getBrowseDirName, self.mode1labelDir1))
         # self.mode1buttonDir1.clicked.connect(lambda: self.getBrowseDirName(self.mode1labelDir1))
 
         self.mode1buttonDir2 = QPushButton("out_directory")
-        self.mode1labelDir2 = QLabel(os.path.normpath('C:/NGS_forensic_database/csv_output'))
+        self.mode1labelDir2 = QLabel(os.path.normpath('/home/pavla/NGS_forensic_database/csv_output'))
         self.mode1buttonDir2.clicked.connect(partial(self.getBrowseDirName, self.mode1labelDir2))
 
         self.mode1buttonDir3 = QPushButton("xml_CE_directory")
-        self.mode1labelDir3 = QLabel(os.path.normpath('C:/NGS_forensic_database/xml_CE'))
+        self.mode1labelDir3 = QLabel(os.path.normpath('/home/pavla/NGS_forensic_database/xml_CE'))
         self.mode1buttonDir3.clicked.connect(partial(self.getBrowseDirName, self.mode1labelDir3))
 
         self.mode1buttonDir4 = QPushButton("CSV_CE_directory")
-        self.mode1labelDir4 = QLabel(os.path.normpath('C:/NGS_forensic_database/csv_CE'))
+        self.mode1labelDir4 = QLabel(os.path.normpath('/home/pavla/NGS_forensic_database/csv_CE'))
         self.mode1buttonDir4.clicked.connect(partial(self.getBrowseDirName, self.mode1labelDir4))
 
         self.mode1buttonDir5 = QPushButton("report_directory")
@@ -238,15 +238,15 @@ class NdiUi(QMainWindow):
         self.mode2boolean2CheckBox = QCheckBox("use_external_file_for_missing_markers")
 
         self.mode2buttonDir1 = QPushButton("CE_profiles_directory")
-        self.mode2labelDir1 = QLabel("C:/NGS_forensic_database/relationship_LR_estimation/STR_lenght_profiles")
+        self.mode2labelDir1 = QLabel("/home/pavla/NGS_forensic_database/relationship_LR_estimation/STR_lenght_profiles")
         self.mode2buttonDir1.clicked.connect(partial(self.getBrowseDirName, self.mode2labelDir1))
 
         self.mode2buttonDir2 = QPushButton("CE_frequencies_directory")
-        self.mode2labelDir2 = QLabel("C:/NGS_forensic_database/relationship_LR_estimation/STR_lenght_frequencies")
+        self.mode2labelDir2 = QLabel("/home/pavla/NGS_forensic_database/relationship_LR_estimation/STR_lenght_frequencies")
         self.mode2buttonDir2.clicked.connect(partial(self.getBrowseDirName, self.mode2labelDir2))
 
         self.mode2buttonDir3 = QPushButton("reports_directory")
-        self.mode2labelDir3 = QLabel("C:/NGS_forensic_database/relationship_LR_estimation/reports")
+        self.mode2labelDir3 = QLabel("/home/pavla/NGS_forensic_database/relationship_LR_estimation/reports")
         self.mode2buttonDir3.clicked.connect(partial(self.getBrowseDirName, self.mode2labelDir3))
 
         self.mode2buttonRun = QPushButton("run")
@@ -307,15 +307,15 @@ class NdiUi(QMainWindow):
         self.mode3Layout = QGridLayout()
 
         self.mode3buttonFile1 = QPushButton("sample_list")
-        self.mode3labelFile1 = QLabel("C:/NGS_forensic_database/print_samples/print_sample.txt")
+        self.mode3labelFile1 = QLabel("/home/pavla/NGS_forensic_database/print_samples/print_sample.txt")
         self.mode3buttonFile1.clicked.connect(partial(self.getBrowseFileName, self.mode3labelFile1))
 
         self.mode3buttonFile2 = QPushButton("locus_order")
-        self.mode3labelFile2 = QLabel("C:/NGS_forensic_database/print_samples/locus_order.txt")
+        self.mode3labelFile2 = QLabel("/home/pavla/NGS_forensic_database/print_samples/locus_order.txt")
         self.mode3buttonFile2.clicked.connect(partial(self.getBrowseFileName, self.mode3labelFile2))
         
         self.mode3buttonDir3 = QPushButton("reports_directory")
-        self.mode3labelDir3 = QLabel("C:/NGS_forensic_database/print_samples/prints")
+        self.mode3labelDir3 = QLabel("/home/pavla/NGS_forensic_database/print_samples/prints")
         self.mode3buttonDir3.clicked.connect(partial(self.getBrowseDirName, self.mode3labelDir3))
 
         self.mode3categoriesList = QListWidget()
@@ -382,7 +382,7 @@ class NdiUi(QMainWindow):
         self.mode4Layout = QGridLayout()
 
         self.mode4buttonFile1 = QPushButton("sample_list")
-        self.mode4labelFile1 = QLabel("C:/NGS_forensic_database/delete_samples/delete_sample.txt")
+        self.mode4labelFile1 = QLabel("/home/pavla/NGS_forensic_database/delete_samples/delete_sample.txt")
         self.mode4buttonFile1.clicked.connect(partial(self.getBrowseFileName, self.mode4labelFile1))
 
         self.mode4categoriesList = QListWidget()

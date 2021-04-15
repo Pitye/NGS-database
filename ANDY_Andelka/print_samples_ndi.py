@@ -53,13 +53,13 @@ def print_samples (path_samples_print, path_locus_order, directory_reports, tabl
             
     ### *** get data from from mySQL dtb - sample_records ***
     #db=MySQLdb.connect("localhost", "root", dbPass, "NGS_FORENSIC")
-    db=MySQLdb.connect(user="root", password=dbPass, database="NGS_FORENSIC")
+    db=MySQLdb.connect(user="root", password=dbPass, database="ngs_forensic")
     #c = db.cursor()
     c = db.cursor(buffered=True)
     if 'AutoSTR' in table_list:
         for sample in sample_names:
         
-            sql_select_Query = "SELECT * FROM NGS_FORENSIC.nomen_freq_autostrdata_flankingreg where sample_name = '%s'" % (sample)
+            sql_select_Query = "SELECT * FROM ngs_forensic.nomen_freq_autostrdata_flankingreg where sample_name = '%s'" % (sample)
             c.execute(sql_select_Query)
             records = c.fetchall()
     
@@ -75,7 +75,7 @@ def print_samples (path_samples_print, path_locus_order, directory_reports, tabl
     if 'Y-STR' in table_list:        
         for sample in sample_names:
         
-            sql_select_Query = "SELECT * FROM NGS_FORENSIC.freq_y_strdata_flankingreg where sample_name = '%s'" % (sample)
+            sql_select_Query = "SELECT * FROM ngs_forensic.freq_y_strdata_flankingreg where sample_name = '%s'" % (sample)
             c.execute(sql_select_Query)
             records = c.fetchall()
     
