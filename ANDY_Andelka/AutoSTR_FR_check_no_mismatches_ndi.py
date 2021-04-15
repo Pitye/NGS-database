@@ -5,6 +5,7 @@ import csv
 import xml.etree.ElementTree as etree
 import operator
 from collections import Counter
+#import MySQLdb
 import mysql.connector as MySQLdb
 from datetime import datetime
 import xlwt

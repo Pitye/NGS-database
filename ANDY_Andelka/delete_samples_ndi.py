@@ -5,7 +5,8 @@ import csv
 import xml.etree.ElementTree as etree
 import operator
 from collections import Counter
-import MySQLdb
+#import MySQLdb
+import mysql.connector as MySQLdb
 import math
 from datetime import datetime
 
@@ -27,29 +28,31 @@ def delete_samples(path_samples_delete, table_list, dbPass):
             print ('ERROR: wrong format ' + path_samples_print)
     
     ### *** delete data from from mySQL dtb  ***
-    db=MySQLdb.connect("localhost", "root", dbPass, "NGS_FORENSIC")
-    c = db.cursor()
+    #db=MySQLdb.connect("localhost", "root", dbPass, "NGS_FORENSIC")
+    db=MySQLdb.connect(user="root", password=dbPass, database="NGS_FORENSIC")
+    #c = db.cursor()
+    c = db.cursor(buffered=True)
     for sample in sample_names:
         if 'AutoSTR' in table_list:
-            select_head_id = "SELECT id FROM ngs_forensic.Heads_flankingReg WHERE sample_name = '%s'" % (sample)
+            select_head_id = "SELECT id FROM NGS_FORENSIC.Heads_flankingReg WHERE sample_name = '%s'" % (sample)
             c.execute(select_head_id)
             row_count = c.rowcount
             if row_count == 0:
                 print (sample, ' is not in AutoSTR database')
             else:
-                sql_delete_Query = "DELETE FROM ngs_forensic.heads_flankingreg where sample_name = '%s'" % (sample)
+                sql_delete_Query = "DELETE FROM NGS_FORENSIC.heads_flankingreg where sample_name = '%s'" % (sample)
                 c.execute(sql_delete_Query)
                 db.commit()
                 print(sample + ' was deleted from AutoSTR database')
     
         if 'Y-STR' in table_list:
-            select_head_id_Y = "SELECT id FROM ngs_forensic.Heads_y_flankingReg WHERE sample_name = '%s'" % (sample)
+            select_head_id_Y = "SELECT id FROM NGS_FORENSIC.Heads_y_flankingReg WHERE sample_name = '%s'" % (sample)
             c.execute(select_head_id_Y)
             row_count = c.rowcount
             if row_count == 0:
                 print (sample, ' is not in Y-STR database')
             else:
-                sql_delete_Query_Y = "DELETE FROM ngs_forensic.heads_y_flankingreg where sample_name = '%s'" % (sample)
+                sql_delete_Query_Y = "DELETE FROM NGS_FORENSIC.heads_y_flankingreg where sample_name = '%s'" % (sample)
                 c.execute(sql_delete_Query_Y)
                 db.commit()
                 print(sample + ' was deleted from Y_STR database')

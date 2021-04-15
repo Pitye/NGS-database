@@ -5,7 +5,8 @@ import csv
 import xml.etree.ElementTree as etree
 import operator
 from collections import Counter
-import MySQLdb
+#import MySQLdb
+import mysql.connector as MySQLdb
 from datetime import datetime
 import xlwt
 
@@ -301,8 +302,10 @@ def Y_STR_FR_import2db(in_directory, out_directory, xml_directory, CSV_CE_direct
     #print(Y_STR_Data) 
 
     #insert data from 'Auto_STR_Head' and 'Auto_STR_Data' to MySQL NGS_FORENSIC database (create dtbschema by querries in sql file)'
-    db=MySQLdb.connect("localhost", "root", dbPass, "NGS_FORENSIC")
-    c = db.cursor()
+    #db=MySQLdb.connect("localhost", "root", dbPass, "NGS_FORENSIC")
+    db=MySQLdb.connect(user="root", password=dbPass, database="NGS_FORENSIC")
+    #c = db.cursor()
+    c = db.cursor(buffered=True)
     sample_names_Y = (list(Y_STR_Data.keys()))
     for sample_name_Y in sample_names_Y:
         pr = Y_STR_Head[sample_name_Y]['Project']

@@ -6,7 +6,8 @@ import csv
 import xml.etree.ElementTree as etree
 import operator
 from collections import Counter
-import MySQLdb
+#import MySQLdb
+import mysql.connector as MySQLdb
 import math
 from datetime import datetime
 import xlwt
@@ -95,12 +96,14 @@ def relationship_LR_estimation (sample_names, length_polymorphism_estimation, us
     
     
     ### *** get data from from mySQL dtb - sample_records ***
-    db=MySQLdb.connect("localhost", "root", dbPass, "NGS_FORENSIC")
-    c = db.cursor()
+    #db=MySQLdb.connect("localhost", "root", dbPass, "NGS_FORENSIC")
+    db=MySQLdb.connect(user="root", password=dbPass, database="NGS_FORENSIC")
+    #c = db.cursor()
+    c = db.cursor(buffered=True)
     
     for sample in sample_names:
         
-        sql_select_Query = "SELECT * FROM ngs_forensic.nomen_freq_autostrdata_flankingreg where sample_name = '%s'" % (sample)
+        sql_select_Query = "SELECT * FROM NGS_FORENSIC.nomen_freq_autostrdata_flankingreg where sample_name = '%s'" % (sample)
         c.execute(sql_select_Query)
         records = c.fetchall()
     
@@ -125,7 +128,7 @@ def relationship_LR_estimation (sample_names, length_polymorphism_estimation, us
     
     ### *** get data from from mySQL dtb - STR_frequencies_database ***
     
-    sql_select_Query2 = "SELECT marker, allele, sum(frequency) FROM ngs_forensic.nomenclature_markerautostrview_flankingreg group by marker, allele order by marker, allele"           
+    sql_select_Query2 = "SELECT marker, allele, sum(frequency) FROM NGS_FORENSIC.nomenclature_markerautostrview_flankingreg group by marker, allele order by marker, allele"           
     c.execute(sql_select_Query2)
     records2 = c.fetchall()
     for row in records2:
