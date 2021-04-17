@@ -413,6 +413,7 @@ class NdiUi(QMainWindow):
 def main():
     ndi = QApplication([])
     view = NdiUi()
+    print('test')
     view.show()
     sys.exit(ndi.exec())
 
