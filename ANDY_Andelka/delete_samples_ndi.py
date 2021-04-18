@@ -6,10 +6,19 @@ import xml.etree.ElementTree as etree
 import operator
 from collections import Counter
 #import MySQLdb
-import mysql.connector as MySQLdb
+#import mysql.connector as MySQLdb
 import math
 from datetime import datetime
+import sys
 
+def systemLinux():
+    if sys.platform == 'linux':
+        return True
+
+if systemLinux():
+    import mysql.connector as MySQLdb
+else:
+    import MySQLdb
 
 def main():
     path_samples_delete = os.path.normpath('C:/NGS_forensic_database/delete_samples/delete_sample.txt')
@@ -28,10 +37,13 @@ def delete_samples(path_samples_delete, table_list, dbPass):
             print ('ERROR: wrong format ' + path_samples_print)
     
     ### *** delete data from from mySQL dtb  ***
-    #db=MySQLdb.connect("localhost", "root", dbPass, "NGS_FORENSIC")
-    db=MySQLdb.connect(user="root", password=dbPass, database="ngs_forensic")
-    #c = db.cursor()
-    c = db.cursor(buffered=True)
+    if systemLinux():
+        db = MySQLdb.connect(user="root", password=dbPass, database="ngs_forensic")
+        c = db.cursor(buffered=True)
+    else:
+        db = MySQLdb.connect("localhost", "root", dbPass, "NGS_FORENSIC")
+        c = db.cursor()
+
     for sample in sample_names:
         if 'AutoSTR' in table_list:
             select_head_id = "SELECT id FROM ngs_forensic.heads_flankingreg WHERE sample_name = '%s'" % (sample)

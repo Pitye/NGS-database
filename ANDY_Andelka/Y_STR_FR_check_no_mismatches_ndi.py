@@ -6,9 +6,20 @@ import xml.etree.ElementTree as etree
 import operator
 from collections import Counter
 #import MySQLdb
-import mysql.connector as MySQLdb
+#import mysql.connector as MySQLdb
 from datetime import datetime
 import xlwt
+
+import sys
+
+def systemLinux():
+    if sys.platform == 'linux':
+        return True
+
+if systemLinux():
+    import mysql.connector as MySQLdb
+else:
+    import MySQLdb
 
 def main():
 
@@ -310,10 +321,13 @@ def Y_STR_FR_check_no_mismatches(in_directory, out_directory, xml_directory, CSV
     # check if sample is already in database
     if CheckIfSampleInDatabase:
         f.writelines(["\n\n CHECK IF SAMPLES IN DATABASE"])
-        #db=MySQLdb.connect("localhost", "root", dbPass, "NGS_FORENSIC")
-        db=MySQLdb.connect(user="root", password=dbPass, database="ngs_forensic")
-        #c = db.cursor()
-        c = db.cursor(buffered=True)
+        if systemLinux():
+            db = MySQLdb.connect(user="root", password=dbPass, database="ngs_forensic")
+            c = db.cursor(buffered=True)
+        else:
+            db = MySQLdb.connect("localhost", "root", dbPass, "NGS_FORENSIC")
+            c = db.cursor()
+
         sample_names_Y = (list(Y_STR_Data.keys()))
         for sample_name_Y in sample_names_Y:
             select_head_id = "SELECT id FROM heads_y_flankingreg WHERE sample_name = '%s'" % (sample_name_Y)
