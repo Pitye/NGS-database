@@ -297,8 +297,22 @@ def markerNoReadsList(AutoSTR_Data, sample, marker):
     return NoReadsList
 
 
-reports_list = ['STRaitRazor', 'GeneMarker', 'UAS']
-# reports_list = ['STRaitRazor',  'UAS']
+def mergeLists2unique(list1, list2, list3):
+    mergedList = list1 + list2 + list3
+    uniqueList = list(dict.fromkeys(mergedList))
+    return uniqueList
+
+
+def commonMembers(list1, list2):
+    set1 = set(list1)
+    set2 = set(list2)
+    return set1.intersection(set2)
+
+
+#reports_list = ['STRaitRazor', 'GeneMarker', 'UAS']
+reports_list = ['STRaitRazor',  'UAS']
+#reports_list = ['GeneMarker', 'UAS']
+#reports_list = ['STRaitRazor', 'GeneMarker']
 
 home = getHome()
 
@@ -333,6 +347,11 @@ GM_threshold = 10
 # SR_Auto_STR_Data = {}
 # SR_Auto_STR_Data_unsorted = {}
 
+# create empty lists
+UAS_samples = []
+GM_samples = []
+SR_samples = []
+
 PowerSeq_ProjectInfo = createPowerSeqProjectInfo(in_project_info)
 
 if 'UAS' in reports_list:
@@ -364,6 +383,72 @@ print('GM_project_name:', PowerSeq_ProjectInfo[0])
 print('GM_created_name:', PowerSeq_ProjectInfo[1])
 print('GM_analysis_name:', PowerSeq_ProjectInfo[2])
 print('GM_user_name:', PowerSeq_ProjectInfo[3])
+
+samples_all = mergeLists2unique(UAS_samples, GM_samples, SR_samples)
+markers_all = mergeLists2unique(PowerSeq_markers, Illumina_markers, [])
+markers_common = commonMembers(PowerSeq_markers, Illumina_markers)
+#markers_not_compared = markers_all - markers_common
+
+
+def compare2analysis(analysis1, analysis2):
+    analysisList = [analysis1, analysis2]
+    if 'UAS' not in analysisList:
+        samples1 = SR_samples
+        data1 = SR_Auto_STR_Data
+        samples2 = GM_samples
+        data2 = GM_Auto_STR_Data
+        markers = PowerSeq_markers
+
+    if 'GeneMarker' not in analysisList:
+        samples1 = SR_samples
+        data1 = SR_Auto_STR_Data
+        samples2 = UAS_samples
+        data2 = UAS_Auto_STR_Data
+        markers = markers_common
+        #print('not compared markers', markers_not_compared)
+
+    if 'STRaitRazor' not in analysisList:
+        samples1 = GM_samples
+        data1 = GM_Auto_STR_Data
+        samples2 = UAS_samples
+        data2 = UAS_Auto_STR_Data
+        markers = markers_common
+        #print('not compared markers', markers_not_compared)
+
+    for sample in samples_all:
+        if sample not in samples1:
+            print(sample, ' is not in ', analysis1)
+        if sample not in samples2:
+            print (sample, ' is not in ', analysis2)
+        if sample in samples1  and sample in samples2:
+            for marker in markers:
+                alleleList1 = markerAlleleList(data1, sample, marker)
+                alleleList2 = markerAlleleList(data2, sample, marker)
+                noReadsList1 = markerNoReadsList(data1, sample, marker)
+                noReadsList2 = markerNoReadsList(data2, sample, marker)
+                if alleleList1 != alleleList2:
+                    print(sample, marker, analysis1 + ': ', alleleList1, noReadsList1, analysis2 + ': ', alleleList2, noReadsList2)
+
+if len(reports_list) == 2:
+    compare2analysis(reports_list[0], reports_list[1])
+
+print('comparison finished')
+# if len(reports_list) == 2:
+#     if 'STRaitRazor' in reports_list and 'GeneMarker' in reports_list:
+#         for sample in samples_all:
+#             if sample not in SR_samples:
+#                 print(sample, 'is not in STRaitRazor samples')
+#             if sample not in GM_samples:
+#                 print(sample, 'is not in GeneMarker samples')
+#             if sample in SR_samples and sample in GM_samples:
+#                 for marker in PowerSeq_markers:
+#                          GM_AlleleList = markerAlleleList(GM_Auto_STR_Data, sample, marker)
+#                          SR_AlleleList = markerAlleleList(SR_Auto_STR_Data, sample, marker)
+#                          GM_NoReadsList = markerNoReadsList(GM_Auto_STR_Data, sample, marker)
+#                          SR_NoReadsList = markerNoReadsList(SR_Auto_STR_Data, sample, marker)
+#                          if GM_AlleleList != SR_AlleleList:
+#                              print (sample, marker, 'GeneMarker: ', GM_AlleleList, GM_NoReadsList, 'STRaitRazor: ', SR_AlleleList, SR_NoReadsList)
+#
 
 # for sample in GM_samples:
 #     if sample in SR_samples:
