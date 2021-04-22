@@ -3,6 +3,7 @@ import shutil
 import csv
 import pandas as pd
 import sys
+import xml.etree.ElementTree as etree
 
 
 def systemLinux():
@@ -306,8 +307,70 @@ def mergeLists2unique(list1, list2, list3):
 def commonMembers(list1, list2):
     set1 = set(list1)
     set2 = set(list2)
-    return set1.intersection(set2)
+    return list(set1.intersection(set2))
 
+
+def readCsvCE(CSV_CE_dir):
+    CSV_CE_list = os.listdir(CSV_CE_dir)
+    CSV_data_CE = {}
+    for file in CSV_CE_list:
+        if file.endswith('.csv'):
+            genotype = {}
+
+            for row in csv.reader(open(CSV_CE_dir + os.path.normpath('/') + file), delimiter=','):
+                specimen_id = row[9]
+                locus_name = row[79].replace(' ', '')
+                allele_values = row[80].split(", ")
+                if not locus_name.startswith('DYS') and not locus_name.startswith('YGAT') and len(allele_values) == 1:
+                    allele_values.append(allele_values[0])
+                genotype[locus_name] = allele_values
+
+            CSV_data_CE[specimen_id] = genotype
+    return CSV_data_CE
+
+
+def readXmlCE(XML_CE_dir):
+    tree = etree.parse(XML_CE_dir)
+    namespaces = {'ns': 'urn:CODISImportFile-schema'}
+    root = tree.getroot()
+
+    XML_data = {}
+    for specimen_element in root.findall("ns:SPECIMEN", namespaces):
+        specimen_id = specimen_element.find("ns:SPECIMENID", namespaces).text
+        genotype = {}
+        for locus_element in specimen_element.findall("ns:LOCUS", namespaces):
+            locus_name = locus_element.find("ns:LOCUSNAME", namespaces).text.replace(' ', '')
+            allele_values = []
+
+            for allele_value_element in locus_element.findall("*/ns:ALLELEVALUE", namespaces):
+                allele_values.append(allele_value_element.text)
+
+            if not locus_name.startswith('DYS') and not locus_name.startswith('YGAT') and len(allele_values) == 1:
+                allele_values.append(allele_values[0])
+
+            genotype[locus_name] = allele_values
+            # dictionary[new_key] = dictionary.pop(old_key)
+            if 'YGATAH4' in locus_name:
+                genotype['Y-GATA-H4'] = genotype.pop('YGATAH4')
+            if 'DYS385' in locus_name:
+                genotype['DYS385a-b'] = genotype.pop('DYS385')
+
+        XML_data[specimen_id] = genotype
+
+    return XML_data
+
+
+def merge2dicts(x, y):
+    z = x.copy()   # start with x's keys and values
+    z.update(y)    # modifies z with y's keys and values & returns None
+    return z
+
+
+def removeFromList(originalList, removingList):
+    for element in removingList:
+        newList = originalList
+        newList.remove(element)
+    return newList
 
 #reports_list = ['STRaitRazor', 'GeneMarker', 'UAS']
 reports_list = ['STRaitRazor',  'UAS']
@@ -386,9 +449,11 @@ print('GM_user_name:', PowerSeq_ProjectInfo[3])
 
 samples_all = mergeLists2unique(UAS_samples, GM_samples, SR_samples)
 markers_all = mergeLists2unique(PowerSeq_markers, Illumina_markers, [])
+# print('markers_all', markers_all)
 markers_common = commonMembers(PowerSeq_markers, Illumina_markers)
-#markers_not_compared = markers_all - markers_common
-
+# print('markers_common', markers_common)
+markers_not_compared = removeFromList(markers_all, markers_common)
+# markers_not_compared = markers_all - markers_common
 
 def compare2analysis(analysis1, analysis2):
     analysisList = [analysis1, analysis2]
@@ -405,7 +470,7 @@ def compare2analysis(analysis1, analysis2):
         samples2 = UAS_samples
         data2 = UAS_Auto_STR_Data
         markers = markers_common
-        #print('not compared markers', markers_not_compared)
+        print('not compared markers', markers_not_compared)
 
     if 'STRaitRazor' not in analysisList:
         samples1 = GM_samples
@@ -413,7 +478,7 @@ def compare2analysis(analysis1, analysis2):
         samples2 = UAS_samples
         data2 = UAS_Auto_STR_Data
         markers = markers_common
-        #print('not compared markers', markers_not_compared)
+        print('not compared markers', markers_not_compared)
 
     for sample in samples_all:
         if sample not in samples1:
