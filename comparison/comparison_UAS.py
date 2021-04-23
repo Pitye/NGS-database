@@ -154,7 +154,7 @@ def createGeneMarkerRaw(inGeneMarkerDirectory, PowerSeqMarkers, PowerSeq_project
                     break
                 if GM_row_number == 3 and row[0].startswith('#Sample: '):
                     if len(row[0][9:].split("_")[0]) >= 0:
-                        GM_sample_name = row[0][9:].split("_")[0]
+                        GM_sample_name = row[0][9:].split("_")[0].upper()
 
                         GM_Auto_STR_Head[GM_sample_name] = {'Project': PowerSeq_project_info[0],
                                                             'Analysis': PowerSeq_project_info[2],
@@ -208,14 +208,14 @@ def createSTRaitRazorRaw(inSTRaitRazorDirectory, PowerSeqMarkers, PowerSeq_proje
             for row in csv.reader(open(inSTRaitRazorDirectory + os.path.normpath('/') + file), delimiter=','):
                 if row[0].split("_")[3] == 'R1':
                     # new sample starts - new empty dictionary is created
-                    if SR_sample_name != row[0].split("_")[0]:
-                        SR_Auto_STR_Head[row[0].split("_")[0]] = {'Project': PowerSeq_project_info[0],
+                    if SR_sample_name != row[0].split("_")[0].upper():
+                        SR_Auto_STR_Head[row[0].split("_")[0].upper()] = {'Project': PowerSeq_project_info[0],
                                                                   'Analysis': PowerSeq_project_info[2],
                                                                   'Run': 'user ' + PowerSeq_project_info[3],
                                                                   'Gender': 'null', 'Created': PowerSeq_project_info[1]}
                         SR_sample_raw_dict = {marker: [] for marker in PowerSeqMarkers}
                     # created Auto_STR_Data_raw[sample_name] = {Locus:[Locus, Allele Name, Typed Allele?, Reads, Repeat Sequence]}
-                    SR_sample_name = row[0].split("_")[0]
+                    SR_sample_name = row[0].split("_")[0].upper()
                     if row[1] in PowerSeqMarkers or row[1] == 'DYS385':
                         if row[1] == 'DYS385':
                             Locus = 'DYS385a/b'
@@ -372,10 +372,12 @@ def removeFromList(originalList, removingList):
         newList.remove(element)
     return newList
 
+
 #reports_list = ['STRaitRazor', 'GeneMarker', 'UAS']
 reports_list = ['STRaitRazor',  'UAS']
 #reports_list = ['GeneMarker', 'UAS']
 #reports_list = ['STRaitRazor', 'GeneMarker']
+reports_list.sort()
 
 home = getHome()
 
@@ -455,48 +457,77 @@ markers_common = commonMembers(PowerSeq_markers, Illumina_markers)
 markers_not_compared = removeFromList(markers_all, markers_common)
 # markers_not_compared = markers_all - markers_common
 
-def compare2analysis(analysis1, analysis2):
-    analysisList = [analysis1, analysis2]
+def compare2analysis(analysisList):
     if 'UAS' not in analysisList:
+        samples0 = GM_samples
+        data0 = GM_Auto_STR_Data
         samples1 = SR_samples
         data1 = SR_Auto_STR_Data
-        samples2 = GM_samples
-        data2 = GM_Auto_STR_Data
         markers = PowerSeq_markers
 
     if 'GeneMarker' not in analysisList:
-        samples1 = SR_samples
-        data1 = SR_Auto_STR_Data
-        samples2 = UAS_samples
-        data2 = UAS_Auto_STR_Data
+        samples0 = SR_samples
+        data0 = SR_Auto_STR_Data
+        samples1 = UAS_samples
+        data1 = UAS_Auto_STR_Data
         markers = markers_common
         print('not compared markers', markers_not_compared)
 
     if 'STRaitRazor' not in analysisList:
-        samples1 = GM_samples
-        data1 = GM_Auto_STR_Data
-        samples2 = UAS_samples
-        data2 = UAS_Auto_STR_Data
+        samples0 = GM_samples
+        data0 = GM_Auto_STR_Data
+        samples1 = UAS_samples
+        data1 = UAS_Auto_STR_Data
         markers = markers_common
         print('not compared markers', markers_not_compared)
 
     for sample in samples_all:
+        if sample not in samples0:
+            print(sample, ' is not in ', analysisList[0])
         if sample not in samples1:
-            print(sample, ' is not in ', analysis1)
-        if sample not in samples2:
-            print (sample, ' is not in ', analysis2)
-        if sample in samples1  and sample in samples2:
+            print (sample, ' is not in ', analysisList[1])
+        if sample in samples0  and sample in samples1:
             for marker in markers:
+                alleleList0 = markerAlleleList(data0, sample, marker)
+                alleleList1 = markerAlleleList(data1, sample, marker)
+                noReadsList0 = markerNoReadsList(data0, sample, marker)
+                noReadsList1 = markerNoReadsList(data1, sample, marker)
+                if alleleList0 != alleleList1:
+                    print(sample, marker, analysisList[0] + ': ', alleleList0, noReadsList0, analysisList[1] + ': ', alleleList1, noReadsList1)
+
+
+def compare3analysis(analysisList):
+    if analysisList == ['GeneMarker', 'STRaitRazor', 'UAS']:
+        samples0 = GM_samples
+        data0 = GM_Auto_STR_Data
+        samples1 = SR_samples
+        data1 = SR_Auto_STR_Data
+        samples2 = UAS_samples
+        data2 = UAS_Auto_STR_Data
+        markers = markers_common
+    for sample in samples_all:
+        if sample not in samples0:
+            print(sample, ' is not in ', analysisList[0])
+        if sample not in samples1:
+            print(sample, ' is not in ', analysisList[1])
+        if sample not in samples2:
+            print(sample, ' is not in ', analysisList[2])
+
+        if sample in samples0 and sample in samples1 and sample in samples2:
+            for marker in markers:
+                alleleList0 = markerAlleleList(data0, sample, marker)
                 alleleList1 = markerAlleleList(data1, sample, marker)
                 alleleList2 = markerAlleleList(data2, sample, marker)
+                noReadsList0 = markerNoReadsList(data0, sample, marker)
                 noReadsList1 = markerNoReadsList(data1, sample, marker)
                 noReadsList2 = markerNoReadsList(data2, sample, marker)
-                if alleleList1 != alleleList2:
-                    print(sample, marker, analysis1 + ': ', alleleList1, noReadsList1, analysis2 + ': ', alleleList2, noReadsList2)
+                if alleleList0 != alleleList1 or alleleList1 != alleleList2 or alleleList0 != alleleList2:
+                    print(sample, marker, analysisList[0] + ': ', alleleList0, noReadsList0, analysisList[1] + ': ', alleleList1, noReadsList1, analysisList[2] + ': ', alleleList2, noReadsList2)
 
 if len(reports_list) == 2:
-    compare2analysis(reports_list[0], reports_list[1])
-
+    compare2analysis(reports_list)
+if len(reports_list) == 3:
+    compare3analysis(reports_list)
 print('comparison finished')
 # if len(reports_list) == 2:
 #     if 'STRaitRazor' in reports_list and 'GeneMarker' in reports_list:
