@@ -310,33 +310,44 @@ def commonMembers(list1, list2):
     return list(set1.intersection(set2))
 
 
+def merge2dicts(x, y):
+    z = x.copy()   # start with x's keys and values
+    z.update(y)    # modifies z with y's keys and values & returns None
+    return z
+
+
 def readCsvCE(CSV_CE_dir):
     CSV_CE_list = os.listdir(CSV_CE_dir)
     CSV_data_CE = {}
-    for file in CSV_CE_list:
-        if file.endswith('.csv'):
-            genotype = {}
+    if len(CSV_CE_list) > 0:
+        #CSV_data_CE = {}
+        for file in CSV_CE_list:
+            if file.endswith('.csv'):
+                genotype = {}
 
-            for row in csv.reader(open(CSV_CE_dir + os.path.normpath('/') + file), delimiter=','):
-                specimen_id = row[9]
-                locus_name = row[79].replace(' ', '')
-                allele_values = row[80].split(", ")
-                if not locus_name.startswith('DYS') and not locus_name.startswith('YGAT') and len(allele_values) == 1:
-                    allele_values.append(allele_values[0])
-                genotype[locus_name] = allele_values
+                for row in csv.reader(open(CSV_CE_dir + os.path.normpath('/') + file), delimiter=','):
+                    specimen_id = row[9]
+                    locus_name = row[79].replace(' ', '')
+                    allele_values = row[80].split(", ")
+                    if not locus_name.startswith('DYS') and not locus_name.startswith('YGAT') and len(allele_values) == 1:
+                        allele_values.append(allele_values[0])
+                    genotype[locus_name] = allele_values
 
-            CSV_data_CE[specimen_id] = genotype
+                CSV_data_CE[specimen_id] = genotype
+    else:
+        print('no CE csv files in', CSV_CE_dir)
     return CSV_data_CE
 
 
-def readXmlCE(XML_CE_dir):
-    tree = etree.parse(XML_CE_dir)
+def readXmlCE_file(path):
+    tree = etree.parse(path)
     namespaces = {'ns': 'urn:CODISImportFile-schema'}
     root = tree.getroot()
 
     XML_data = {}
     for specimen_element in root.findall("ns:SPECIMEN", namespaces):
-        specimen_id = specimen_element.find("ns:SPECIMENID", namespaces).text
+        #specimen_id = specimen_element.find("ns:SPECIMENID", namespaces).text.split("-")[1].upper()
+        specimen_id = specimen_element.find("ns:SPECIMENID", namespaces).text.split("-")[1].upper()
         genotype = {}
         for locus_element in specimen_element.findall("ns:LOCUS", namespaces):
             locus_name = locus_element.find("ns:LOCUSNAME", namespaces).text.replace(' ', '')
@@ -356,14 +367,21 @@ def readXmlCE(XML_CE_dir):
                 genotype['DYS385a-b'] = genotype.pop('DYS385')
 
         XML_data[specimen_id] = genotype
-
     return XML_data
 
 
-def merge2dicts(x, y):
-    z = x.copy()   # start with x's keys and values
-    z.update(y)    # modifies z with y's keys and values & returns None
-    return z
+def readXmlCE(XML_CE_dir):
+    XML_CE_list = os.listdir(XML_CE_dir)
+    XML_CE_data = {}
+    if len(XML_CE_list) > 0:
+        for file in XML_CE_list:
+            if file.endswith('.xml'):
+                path_xml = XML_CE_dir + os.path.normpath('/') + file
+                XML_CE_data_part = readXmlCE_file(path_xml)
+                XML_CE_data = merge2dicts(XML_CE_data, XML_CE_data_part)
+    else:
+        print('no CE xml files in', XML_CE_dir)
+    return XML_CE_data
 
 
 def removeFromList(originalList, removingList):
@@ -374,11 +392,11 @@ def removeFromList(originalList, removingList):
 
 
 #reports_list = ['STRaitRazor', 'GeneMarker', 'UAS']
-reports_list = ['STRaitRazor',  'UAS']
+#reports_list = ['STRaitRazor',  'UAS']
 #reports_list = ['GeneMarker', 'UAS']
-#reports_list = ['STRaitRazor', 'GeneMarker']
+reports_list = ['STRaitRazor', 'GeneMarker']
 reports_list.sort()
-
+CE_comparison = False
 home = getHome()
 
 # setup of input directories
@@ -387,6 +405,8 @@ out_UAS_directory = home + os.path.normpath('/NGS_forensic_database/csv_output')
 in_GeneMarker_directory = home + os.path.normpath('/NGS_forensic_database/GeneMarker_reports')
 in_STRaitRazor_directory = home + os.path.normpath('/NGS_forensic_database/STRaitRazor_reports')
 in_project_info = home + os.path.normpath('/NGS_forensic_database/GeneMarker_reports/project_info.txt')
+in_CE_csv_directory = home + os.path.normpath('/NGS_forensic_database/csv_CE')
+in_CE_xml_directory = home + os.path.normpath('/NGS_forensic_database/xml_CE')
 
 # setup of markers
 PowerSeq_markers_heterozygozity_dict = {'Amelogenin': 0.5, 'D1S1656': 0.5, 'TPOX': 0.5, 'D2S441': 0.5, 'D2S1338': 0.5,
@@ -444,6 +464,13 @@ if 'STRaitRazor' in reports_list:
                                          PowerSeq_markers_heterozygozity_dict)
     print('STRaitRazor samples: ', SR_samples)
 
+if CE_comparison:
+    CE_csv_dict = readCsvCE(in_CE_csv_directory)
+    CE_xml_dict = readXmlCE(in_CE_xml_directory)
+    CE_data = merge2dicts(CE_csv_dict,CE_xml_dict)
+    CE_samples = list(CE_data.keys())
+    print('CE_samples: ', CE_samples)
+
 print('GM_project_name:', PowerSeq_ProjectInfo[0])
 print('GM_created_name:', PowerSeq_ProjectInfo[1])
 print('GM_analysis_name:', PowerSeq_ProjectInfo[2])
@@ -457,7 +484,7 @@ markers_common = commonMembers(PowerSeq_markers, Illumina_markers)
 markers_not_compared = removeFromList(markers_all, markers_common)
 # markers_not_compared = markers_all - markers_common
 
-def compare2analysis(analysisList):
+def compare2analysis(analysisList,CE_compar):
     if 'UAS' not in analysisList:
         samples0 = GM_samples
         data0 = GM_Auto_STR_Data
@@ -485,15 +512,23 @@ def compare2analysis(analysisList):
         if sample not in samples0:
             print(sample, ' is not in ', analysisList[0])
         if sample not in samples1:
-            print (sample, ' is not in ', analysisList[1])
-        if sample in samples0  and sample in samples1:
+            print(sample, ' is not in ', analysisList[1])
+        if sample in samples0 and sample in samples1:
             for marker in markers:
                 alleleList0 = markerAlleleList(data0, sample, marker)
                 alleleList1 = markerAlleleList(data1, sample, marker)
                 noReadsList0 = markerNoReadsList(data0, sample, marker)
                 noReadsList1 = markerNoReadsList(data1, sample, marker)
-                if alleleList0 != alleleList1:
-                    print(sample, marker, analysisList[0] + ': ', alleleList0, noReadsList0, analysisList[1] + ': ', alleleList1, noReadsList1)
+                if CE_compar and sample in CE_samples and marker in list(CE_data[sample].keys()):
+                    CE_alleleList = CE_data[sample][marker]
+                    if alleleList0 != alleleList1 or alleleList0 != CE_alleleList or alleleList1 != CE_alleleList:
+                        print(sample, marker, analysisList[0] + ': ', alleleList0, noReadsList0,
+                              analysisList[1] + ': ',
+                              alleleList1, noReadsList1, 'CE:', CE_alleleList)
+                else:
+                    if alleleList0 != alleleList1:
+                        print(sample, marker, analysisList[0] + ': ', alleleList0, noReadsList0, analysisList[1] + ': ',
+                              alleleList1, noReadsList1, 'no CE data')
 
 
 def compare3analysis(analysisList):
@@ -525,7 +560,7 @@ def compare3analysis(analysisList):
                     print(sample, marker, analysisList[0] + ': ', alleleList0, noReadsList0, analysisList[1] + ': ', alleleList1, noReadsList1, analysisList[2] + ': ', alleleList2, noReadsList2)
 
 if len(reports_list) == 2:
-    compare2analysis(reports_list)
+    compare2analysis(reports_list, CE_comparison)
 if len(reports_list) == 3:
     compare3analysis(reports_list)
 print('comparison finished')
