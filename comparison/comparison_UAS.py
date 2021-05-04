@@ -206,25 +206,26 @@ def createSTRaitRazorRaw(inSTRaitRazorDirectory, PowerSeqMarkers, PowerSeq_proje
     for file in SR_csv_list_0:
         if file.endswith('.csv'):
             for row in csv.reader(open(inSTRaitRazorDirectory + os.path.normpath('/') + file), delimiter=','):
-                if row[0].split("_")[3] == 'R1':
-                    # new sample starts - new empty dictionary is created
-                    if SR_sample_name != row[0].split("_")[0].upper():
-                        SR_Auto_STR_Head[row[0].split("_")[0].upper()] = {'Project': PowerSeq_project_info[0],
+                if len(row) > 0 and len(row[0].split("_")) > 3:
+                    if row[0].split("_")[3] == 'R1':
+                        # new sample starts - new empty dictionary is created
+                        if SR_sample_name != row[0].split("_")[0].upper():
+                            SR_Auto_STR_Head[row[0].split("_")[0].upper()] = {'Project': PowerSeq_project_info[0],
                                                                   'Analysis': PowerSeq_project_info[2],
                                                                   'Run': 'user ' + PowerSeq_project_info[3],
                                                                   'Gender': 'null', 'Created': PowerSeq_project_info[1]}
-                        SR_sample_raw_dict = {marker: [] for marker in PowerSeqMarkers}
-                    # created Auto_STR_Data_raw[sample_name] = {Locus:[Locus, Allele Name, Typed Allele?, Reads, Repeat Sequence]}
-                    SR_sample_name = row[0].split("_")[0].upper()
-                    if row[1] in PowerSeqMarkers or row[1] == 'DYS385':
-                        if row[1] == 'DYS385':
-                            Locus = 'DYS385a/b'
-                        else:
-                            Locus = row[1]
+                            SR_sample_raw_dict = {marker: [] for marker in PowerSeqMarkers}
+                        # created Auto_STR_Data_raw[sample_name] = {Locus:[Locus, Allele Name, Typed Allele?, Reads, Repeat Sequence]}
+                        SR_sample_name = row[0].split("_")[0].upper()
+                        if row[1] in PowerSeqMarkers or row[1] == 'DYS385':
+                            if row[1] == 'DYS385':
+                                Locus = 'DYS385a/b'
+                            else:
+                                Locus = row[1]
 
-                        SR_row_selected = [Locus, row[4], 'N/A', row[2], row[3]]
-                        SR_sample_raw_dict[Locus].append(SR_row_selected)
-                        SR_AutoSTRData_raw[SR_sample_name] = SR_sample_raw_dict
+                            SR_row_selected = [Locus, row[4], 'N/A', row[2], row[3]]
+                            SR_sample_raw_dict[Locus].append(SR_row_selected)
+                            SR_AutoSTRData_raw[SR_sample_name] = SR_sample_raw_dict
     STRaitRazorRaw = [SR_Auto_STR_Head, SR_AutoSTRData_raw]
     return STRaitRazorRaw
 
@@ -290,6 +291,11 @@ def selectTrueAlleles(markers, samples, AutoSTR_Data_raw, heterozygozity_dict):
 
 def markerAlleleList(AutoSTR_Data, sample, marker):
     AlleleList = [AutoSTR_Data[sample][marker][0][1], AutoSTR_Data[sample][marker][1][1]]
+    if marker == 'Amelogenin':
+        if AlleleList == ['0', '6']:
+            AlleleList = ['X', 'Y']
+        if AlleleList == ['0', '0']:
+            AlleleList = ['X', 'X']
     return AlleleList
 
 
@@ -347,7 +353,7 @@ def readXmlCE_file(path):
     XML_data = {}
     for specimen_element in root.findall("ns:SPECIMEN", namespaces):
         #specimen_id = specimen_element.find("ns:SPECIMENID", namespaces).text.split("-")[1].upper()
-        specimen_id = specimen_element.find("ns:SPECIMENID", namespaces).text.split("-")[1].upper()
+        specimen_id = specimen_element.find("ns:SPECIMENID", namespaces).text.upper()
         genotype = {}
         for locus_element in specimen_element.findall("ns:LOCUS", namespaces):
             locus_name = locus_element.find("ns:LOCUSNAME", namespaces).text.replace(' ', '')
@@ -394,9 +400,11 @@ def removeFromList(originalList, removingList):
 #reports_list = ['STRaitRazor', 'GeneMarker', 'UAS']
 #reports_list = ['STRaitRazor',  'UAS']
 #reports_list = ['GeneMarker', 'UAS']
-reports_list = ['STRaitRazor', 'GeneMarker']
+#reports_list = ['STRaitRazor', 'GeneMarker']
+reports_list = ['STRaitRazor']
+reports_list = ['UAS']
 reports_list.sort()
-CE_comparison = False
+CE_comparison = True
 home = getHome()
 
 # setup of input directories
@@ -404,7 +412,7 @@ in_UAS_directory = home + os.path.normpath('/NGS_forensic_database/xlsx_detail_r
 out_UAS_directory = home + os.path.normpath('/NGS_forensic_database/csv_output')
 in_GeneMarker_directory = home + os.path.normpath('/NGS_forensic_database/GeneMarker_reports')
 in_STRaitRazor_directory = home + os.path.normpath('/NGS_forensic_database/STRaitRazor_reports')
-in_project_info = home + os.path.normpath('/NGS_forensic_database/GeneMarker_reports/project_info.txt')
+in_project_info = home + os.path.normpath('/NGS_forensic_database/STRaitRazor_reports/project_info.txt')
 in_CE_csv_directory = home + os.path.normpath('/NGS_forensic_database/csv_CE')
 in_CE_xml_directory = home + os.path.normpath('/NGS_forensic_database/xml_CE')
 
@@ -484,6 +492,37 @@ markers_common = commonMembers(PowerSeq_markers, Illumina_markers)
 markers_not_compared = removeFromList(markers_all, markers_common)
 # markers_not_compared = markers_all - markers_common
 
+
+def compare1analysisCE(analysisList, CE_compar):
+    if CE_compar:
+        if 'GeneMarker' in analysisList:
+            samples0 = GM_samples
+            data0 = GM_Auto_STR_Data
+            markers = PowerSeq_markers
+        if 'STRaitRazor' in analysisList:
+            samples0 = SR_samples
+            data0 = SR_Auto_STR_Data
+            markers = PowerSeq_markers
+        if 'UAS' in analysisList:
+            samples0 = UAS_samples
+            data0 = UAS_Auto_STR_Data
+            markers = Illumina_markers
+        for sample in samples0:
+            if sample in CE_samples:
+                markersMatch = []
+                for marker in markers:
+                    if marker in list(CE_data[sample].keys()):
+                        CE_alleleList = CE_data[sample][marker]
+                        alleleList0 = markerAlleleList(data0, sample, marker)
+                        noReadsList0 = markerNoReadsList(data0, sample, marker)
+                        if alleleList0 != CE_alleleList:
+                            print(sample, marker, analysisList[0] + ': ', alleleList0, noReadsList0,'CE:', CE_alleleList)
+                        if alleleList0 == CE_alleleList:
+                            markersMatch.append(marker)
+                print(sample, "CE match: ", markersMatch, "\n")
+            else:
+                print(sample, "not in CE data\n")
+
 def compare2analysis(analysisList,CE_compar):
     if 'UAS' not in analysisList:
         samples0 = GM_samples
@@ -559,41 +598,11 @@ def compare3analysis(analysisList):
                 if alleleList0 != alleleList1 or alleleList1 != alleleList2 or alleleList0 != alleleList2:
                     print(sample, marker, analysisList[0] + ': ', alleleList0, noReadsList0, analysisList[1] + ': ', alleleList1, noReadsList1, analysisList[2] + ': ', alleleList2, noReadsList2)
 
+
+if len(reports_list) == 1:
+    compare1analysisCE(reports_list, CE_comparison)
 if len(reports_list) == 2:
     compare2analysis(reports_list, CE_comparison)
 if len(reports_list) == 3:
     compare3analysis(reports_list)
 print('comparison finished')
-# if len(reports_list) == 2:
-#     if 'STRaitRazor' in reports_list and 'GeneMarker' in reports_list:
-#         for sample in samples_all:
-#             if sample not in SR_samples:
-#                 print(sample, 'is not in STRaitRazor samples')
-#             if sample not in GM_samples:
-#                 print(sample, 'is not in GeneMarker samples')
-#             if sample in SR_samples and sample in GM_samples:
-#                 for marker in PowerSeq_markers:
-#                          GM_AlleleList = markerAlleleList(GM_Auto_STR_Data, sample, marker)
-#                          SR_AlleleList = markerAlleleList(SR_Auto_STR_Data, sample, marker)
-#                          GM_NoReadsList = markerNoReadsList(GM_Auto_STR_Data, sample, marker)
-#                          SR_NoReadsList = markerNoReadsList(SR_Auto_STR_Data, sample, marker)
-#                          if GM_AlleleList != SR_AlleleList:
-#                              print (sample, marker, 'GeneMarker: ', GM_AlleleList, GM_NoReadsList, 'STRaitRazor: ', SR_AlleleList, SR_NoReadsList)
-#
-
-# for sample in GM_samples:
-#     if sample in SR_samples:
-#         for marker in PowerSeq_markers:
-#             GM_AlleleList = markerAlleleList(GM_Auto_STR_Data, sample, marker)
-#             SR_AlleleList = markerAlleleList(SR_Auto_STR_Data, sample, marker)
-#             GM_NoReadsList = markerNoReadsList(GM_Auto_STR_Data, sample, marker)
-#             SR_NoReadsList = markerNoReadsList(SR_Auto_STR_Data, sample, marker)
-#             if GM_AlleleList != SR_AlleleList:
-#                 print (sample, marker, 'GeneMarker: ', GM_AlleleList,GM_NoReadsList, 'STRaitRazor: ', SR_AlleleList, SR_NoReadsList)
-#     else:
-#         print (sample, 'is not in STRaitRazor samples')
-
-# print (UAS_Auto_STR_Data)
-
-
-# print(GM_Auto_STR_Data_raw['1-01'])
