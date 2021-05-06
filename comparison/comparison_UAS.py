@@ -21,6 +21,24 @@ def getHome():
     return homePath
 
 
+#def renameSamples(dict2rename, renameDict):
+    #for sample in list(dict2rename.keys()):
+    #    if sample in list(renameDict.keys()):
+     #       dict2rename[sample] = dict2rename.pop(renameDict[sample])
+      #      print('SampleName', sample, 'changed to', renameDict[sample])
+
+    #return dict2rename
+
+def renameSamples(dict2rename, renameDict):
+    newDict={}
+    for sample in list(dict2rename.keys()):
+        if sample in list(renameDict.keys()):
+            newDict[renameDict[sample]] = dict2rename[sample]
+            del dict2rename[sample]
+            print('SampleName', sample, 'changed to', renameDict[sample])
+    updatedDict = merge2dicts(newDict,dict2rename)
+    return updatedDict
+
 def createPowerSeqProjectInfo(inProjectInfo):
     # project info from GeneMarker
     PowerSeq_project_name = 'null'
@@ -116,10 +134,14 @@ def createUasRaw(inUasDirectory, outUasDirectory, IlluminaMarkers):
 
                 # created Auto_STR_Data_raw[sample_name] = {Locus:[Locus, Allele Name, Typed Allele?, Reads, Repeat Sequence]}
                 UAS_sample_name = row[0]
+
                 if row[2] in IlluminaMarkers:
                     UAS_row_selected = [row[2], row[3], 'N/A', row[4], row[5]]
                     UAS_sample_raw_dict[row[2]].append(UAS_row_selected)
                     UAS_AutoSTRData_raw[UAS_sample_name] = UAS_sample_raw_dict
+    if renameSamples_UAS:
+        print('renamed samples UAS:')
+        UAS_AutoSTRData_raw = renameSamples(UAS_AutoSTRData_raw, renameDict_UAS)
     UasRow = [UAS_Auto_STR_Head, UAS_AutoSTRData_raw]
     return UasRow
 
@@ -191,7 +213,9 @@ def createGeneMarkerRaw(inGeneMarkerDirectory, PowerSeqMarkers, PowerSeq_project
                                 print('shortRow', GM_sample_name, row[0])
         if ColumnReportIsPresent:
             print(GM_sample_name, 'columnReportIsPresent')
-
+    if renameSamples_GM:
+        print('renamed samples GeneMarker:')
+        GM_AutoSTRData_raw = renameSamples(GM_AutoSTRData_raw, renameDict_GM)
     GeneMarkerRaw = [GM_Auto_STR_Head, GM_AutoSTRData_raw]
     return GeneMarkerRaw
 
@@ -217,6 +241,8 @@ def createSTRaitRazorRaw(inSTRaitRazorDirectory, PowerSeqMarkers, PowerSeq_proje
                             SR_sample_raw_dict = {marker: [] for marker in PowerSeqMarkers}
                         # created Auto_STR_Data_raw[sample_name] = {Locus:[Locus, Allele Name, Typed Allele?, Reads, Repeat Sequence]}
                         SR_sample_name = row[0].split("_")[0].upper()
+
+
                         if row[1] in PowerSeqMarkers or row[1] == 'DYS385':
                             if row[1] == 'DYS385':
                                 Locus = 'DYS385a/b'
@@ -226,6 +252,9 @@ def createSTRaitRazorRaw(inSTRaitRazorDirectory, PowerSeqMarkers, PowerSeq_proje
                             SR_row_selected = [Locus, row[4], 'N/A', row[2], row[3]]
                             SR_sample_raw_dict[Locus].append(SR_row_selected)
                             SR_AutoSTRData_raw[SR_sample_name] = SR_sample_raw_dict
+    if renameSamples_SR:
+        print('renamed samples STRaitRazor:')
+        SR_AutoSTRData_raw = renameSamples(SR_AutoSTRData_raw, renameDict_SR)
     STRaitRazorRaw = [SR_Auto_STR_Head, SR_AutoSTRData_raw]
     return STRaitRazorRaw
 
@@ -400,10 +429,19 @@ def removeFromList(originalList, removingList):
 #reports_list = ['STRaitRazor', 'GeneMarker', 'UAS']
 #reports_list = ['STRaitRazor',  'UAS']
 #reports_list = ['GeneMarker', 'UAS']
-#reports_list = ['STRaitRazor', 'GeneMarker']
-reports_list = ['STRaitRazor']
-reports_list = ['UAS']
+reports_list = ['STRaitRazor', 'GeneMarker']
+#reports_list = ['STRaitRazor']
+#reports_list = ['UAS']
 reports_list.sort()
+
+renameDict_SR = {'5-25': '5-49', '5-33': 'JO23', '5-34': 'JO24', '5-36': 'MJ2', '5-37': 'MJ3', '5-38': 'MJ4', '5-39': 'MJ5', '5-49': '5-25', 'JO23': '5-33', 'JO24': '5-34', 'MJ1': '5-35', 'MJ2': '5-36', 'MJ3': '5-37', 'MJ4': '5-38', 'MJ5': '5-39'}
+renameDict_GM = {'5-25': '5-49', '5-33': 'JO23', '5-34': 'JO24', '5-36': 'MJ2', '5-37': 'MJ3', '5-38': 'MJ4', '5-39': 'MJ5', '5-49': '5-25', 'JO23': '5-33', 'JO24': '5-34', 'MJ1': '5-35', 'MJ2': '5-36', 'MJ3': '5-37', 'MJ4': '5-38', 'MJ5': '5-39'}
+renameDict_UAS = {}
+renameSamples_SR = True
+renameSamples_GM = True
+renameSamples_UAS = False
+
+printMatches = False
 CE_comparison = True
 home = getHome()
 
@@ -519,7 +557,8 @@ def compare1analysisCE(analysisList, CE_compar):
                             print(sample, marker, analysisList[0] + ': ', alleleList0, noReadsList0,'CE:', CE_alleleList)
                         if alleleList0 == CE_alleleList:
                             markersMatch.append(marker)
-                print(sample, "CE match: ", markersMatch, "\n")
+                if printMatches:
+                    print(sample, "CE match: ", markersMatch, "\n")
             else:
                 print(sample, "not in CE data\n")
 
