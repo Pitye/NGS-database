@@ -30,13 +30,13 @@ def getHome():
     #return dict2rename
 
 def renameSamples(dict2rename, renameDict):
-    newDict={}
+    newDict = {}
     for sample in list(dict2rename.keys()):
         if sample in list(renameDict.keys()):
             newDict[renameDict[sample]] = dict2rename[sample]
             del dict2rename[sample]
             print('SampleName', sample, 'changed to', renameDict[sample])
-    updatedDict = merge2dicts(newDict,dict2rename)
+    updatedDict = merge2dicts(newDict, dict2rename)
     return updatedDict
 
 def createPowerSeqProjectInfo(inProjectInfo):
