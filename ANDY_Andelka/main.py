@@ -8,7 +8,7 @@ from delete_samples_ndi import delete_samples
 import os
 import sys
 
-#from MySQLdb import connect
+# find which operational system
 def systemLinux():
     if sys.platform == 'linux':
         return True
