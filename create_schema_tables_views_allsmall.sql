@@ -24,6 +24,18 @@ no_mismatches int,
 PRIMARY KEY (id)
 );
 
+create table ngs_forensic.heads_family_tree(
+  id int NOT NULL AUTO_INCREMENT,
+  sample_name varchar(50) NOT NULL,
+  project varchar(50) NOT NULL,
+  analysis varchar(50) NOT NULL,
+  run varchar(50) NOT NULL,
+  gender varchar(50) NOT NULL,
+  created varchar(100) NOT NULL,
+  no_mismatches int DEFAULT NULL,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 create table ngs_forensic.heads_y(
 id INT NOT NULL AUTO_INCREMENT,
 sample_name varchar(50) NOT NULL unique,
@@ -136,6 +148,20 @@ CREATE TABLE ngs_forensic.autostrdata_flankingreg (
   PRIMARY KEY (id),
   KEY head_fk_FR (head_id),
   CONSTRAINT head_fk_FR FOREIGN KEY (head_id) REFERENCES heads_flankingreg (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE ngs_forensic.autostrdata_family_tree (
+  id int NOT NULL AUTO_INCREMENT,
+  sample_name varchar(50) NOT NULL,
+  marker varchar(50) NOT NULL,
+  allele varchar(50) DEFAULT NULL,
+  no_reads int DEFAULT NULL,
+  sequence varchar(500) DEFAULT NULL,
+  CE_validation varchar(50) DEFAULT NULL,
+  head_id int DEFAULT NULL,
+  PRIMARY KEY (id),
+  KEY head_fk_FT (head_id),
+  CONSTRAINT head_fk_FT FOREIGN KEY (head_id) REFERENCES heads_family_tree (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE ngs_forensic.y_strdata_flankingreg (
@@ -429,6 +455,36 @@ AS
   WHERE  t.present_in_illumina = 'yes' 
           OR t.present_in_illumina = 'no';  
           
+ CREATE VIEW ngs_forensic.nomenclature_autostrdata_family_tree 
+AS 
+  SELECT t.sample_name   AS sample_name, 
+         t.marker        AS marker, 
+         t.allele        AS allele, 
+         t.seq_name      AS seq_name, 
+         t.pubmed_id     AS PubMed_ID, 
+         t.no_reads      AS no_reads, 
+         t.ce_validation AS CE_validation, 
+         t.head_id       AS head_id, 
+         t.sequence      AS sequence 
+  FROM   (SELECT a.sample_name         AS sample_name, 
+                 a.marker              AS marker, 
+                 a.allele              AS allele, 
+                 n.seq_name            AS seq_name, 
+                 n.pubmed_id           AS PubMed_ID, 
+                 a.no_reads            AS no_reads, 
+                 a.ce_validation       AS CE_validation, 
+                 a.head_id             AS head_id, 
+                 a.sequence            AS sequence, 
+                 n.present_in_illumina AS present_in_Illumina 
+          FROM   ngs_forensic.nomenclature_autostr AS n 
+                 LEFT JOIN autostrdata_family_tree AS a 
+                        ON n.locus = a.marker 
+                           AND n.allele = a.allele 
+          WHERE  n.pubmed_nomenclature_autostr_illumina_longseq = a.sequence 
+                  OR n.reverse_illumina_longseq = a.sequence) AS t 
+  WHERE  t.present_in_illumina = 'yes' 
+          OR t.present_in_illumina = 'no'; 
+ 
  CREATE VIEW ngs_forensic.nomen_freq_autostrdata_flankingreg AS
     SELECT 
         b.sample_name AS sample_name,
@@ -449,6 +505,26 @@ AS
             AND (c.marker = b.marker))))
     ORDER BY b.sample_name;
  
+  CREATE VIEW ngs_forensic.nomen_freq_autostrdata_family_tree AS
+    SELECT 
+        b.sample_name AS sample_name,
+        b.marker AS marker,
+        b.allele AS allele,
+        b.seq_name AS seq_name,
+        b.PubMed_ID AS PubMed_ID,
+        b.sequence AS sequence,
+        b.no_reads AS no_reads,
+        b.CE_validation AS CE_validation,
+        b.head_id AS head_id,
+        c.avg_no_reads AS avg_no_reads,
+        c.count_seq AS count_seq,
+        c.frequency AS frequency
+    FROM
+        (ngs_forensic.nomenclature_autostrdata_family_tree b
+        LEFT JOIN ngs_forensic.markerautostrview_flankingreg c ON (((c.sequence = b.sequence)
+            AND (c.marker = b.marker))))
+    ORDER BY b.sample_name;
+    
  CREATE VIEW ngs_forensic.noname_sequence AS
     SELECT 
         nm.marker AS marker,
