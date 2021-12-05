@@ -1,14 +1,5 @@
 import os
-import sys
-import shutil
 import csv
-import xml.etree.ElementTree as etree
-import operator
-from collections import Counter
-#import MySQLdb
-#import mysql.connector as MySQLdb
-import math
-from datetime import datetime
 import sys
 
 def systemLinux():
@@ -28,13 +19,13 @@ def main():
 
 def delete_samples(path_samples_delete, table_list, dbPass):
     sample_names = []
-    
+    query_table_dict = {}
     ### *** get samples from file
     for sample in csv.reader(open(path_samples_delete), delimiter=';'):
         if len(sample) == 1:
             sample_names.append(sample[0])
         else:
-            print ('ERROR: wrong format ' + path_samples_print)
+            print ('ERROR: wrong format ' + path_samples_delete)
     
     ### *** delete data from from mySQL dtb  ***
     if systemLinux():
@@ -44,30 +35,27 @@ def delete_samples(path_samples_delete, table_list, dbPass):
         db = MySQLdb.connect("localhost", "root", dbPass, "NGS_FORENSIC")
         c = db.cursor()
 
-    for sample in sample_names:
-        if 'AutoSTR' in table_list:
-            select_head_id = "SELECT id FROM ngs_forensic.heads_flankingreg WHERE sample_name = '%s'" % (sample)
+    if 'AutoSTR' in table_list:
+        query_table_dict['heads_flankingreg'] = 'AutoSTR'
+
+    if 'AutoSTR_Family-tree' in table_list:
+        query_table_dict['heads_family_tree'] = 'AutoSTR_Family-tree'
+
+    if 'Y-STR' in table_list:
+        query_table_dict['heads_y_flankingreg'] = 'Y-STR'
+
+    for table in query_table_dict.keys():
+        for sample in sample_names:
+            select_head_id = "SELECT id FROM ngs_forensic.%s WHERE sample_name = '%s'" % (table, sample)
             c.execute(select_head_id)
             row_count = c.rowcount
             if row_count == 0:
-                print (sample, ' is not in AutoSTR database')
+                print(sample, ' is not in ' + query_table_dict[table] + ' database')
             else:
-                sql_delete_Query = "DELETE FROM ngs_forensic.heads_flankingreg where sample_name = '%s'" % (sample)
+                sql_delete_Query = "DELETE FROM ngs_forensic.%s WHERE sample_name = '%s'" % (table, sample)
                 c.execute(sql_delete_Query)
                 db.commit()
-                print(sample + ' was deleted from AutoSTR database')
-    
-        if 'Y-STR' in table_list:
-            select_head_id_Y = "SELECT id FROM ngs_forensic.heads_y_flankingreg WHERE sample_name = '%s'" % (sample)
-            c.execute(select_head_id_Y)
-            row_count = c.rowcount
-            if row_count == 0:
-                print (sample, ' is not in Y-STR database')
-            else:
-                sql_delete_Query_Y = "DELETE FROM ngs_forensic.heads_y_flankingreg where sample_name = '%s'" % (sample)
-                c.execute(sql_delete_Query_Y)
-                db.commit()
-                print(sample + ' was deleted from Y_STR database')
+                print(sample + ' was deleted ' + query_table_dict[table] + ' database')
             
     db.close()  
     print('done')

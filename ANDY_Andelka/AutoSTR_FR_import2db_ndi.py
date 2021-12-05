@@ -31,10 +31,11 @@ def main():
     reports_directory = os.path.normpath('C:/NGS_forensic_database/AutoSTR_import2db')
     no_reads_for_validation = 150
     CheckIfSampleInDatabase = True
+    Family_tree = False
     dbPass = 'XXX'
-    autoSTR_FR_import2db(in_directory, out_directory, xml_directory, CSV_CE_directory, reports_directory, no_reads_for_validation, CheckIfSampleInDatabase, dbPass)
+    autoSTR_FR_import2db(in_directory, out_directory, xml_directory, CSV_CE_directory, reports_directory, no_reads_for_validation, CheckIfSampleInDatabase, Family_tree, dbPass)
 
-def autoSTR_FR_import2db(in_directory, out_directory, xml_directory, CSV_CE_directory, reports_directory, no_reads_for_validation, CheckIfSampleInDatabase, dbPass):
+def autoSTR_FR_import2db(in_directory, out_directory, xml_directory, CSV_CE_directory, reports_directory, no_reads_for_validation, CheckIfSampleInDatabase, Family_tree, dbPass):
     print('please wait...')
     sheets = ['Autosomal STR Coverage', 'X STR Coverage', 'Y STR Coverage', 'iSNP Coverage']
 
@@ -314,6 +315,13 @@ def autoSTR_FR_import2db(in_directory, out_directory, xml_directory, CSV_CE_dire
         db = MySQLdb.connect("localhost", "root", dbPass, "NGS_FORENSIC")
         c = db.cursor()
 
+    if Family_tree:
+        head_table = 'heads_family_tree'
+        auto_table = 'autostrdata_family_tree'
+    else:
+        head_table = 'heads_flankingreg'
+        auto_table = 'autostrdata_flankingreg'
+
     sample_names = (list(Auto_STR_Data.keys()))
     for sample_name in sample_names:
         pr = Auto_STR_Head[sample_name]['Project']
@@ -324,27 +332,31 @@ def autoSTR_FR_import2db(in_directory, out_directory, xml_directory, CSV_CE_dire
         nm = int(Auto_STR_Head[sample_name]['No_mismatches'])
         
         # check if sample is already in database
-        if CheckIfSampleInDatabase: 
-            select_head_id = "SELECT id FROM heads_flankingreg WHERE sample_name = '%s'" % (sample_name)
+        if CheckIfSampleInDatabase:
+            select_head_id = "SELECT id FROM %s WHERE sample_name = '%s'" % (head_table, sample_name)
             c.execute(select_head_id)
             row_count = c.rowcount
         else:
             row_count = 0
         
         if row_count == 0:
-            
-            insert_head = "INSERT INTO heads_flankingreg (sample_name, project, analysis, run, gender, created, no_mismatches) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%d')" % (sample_name, pr, an, ru, ge, cr, nm)
+            insert_head = "INSERT INTO  %s (sample_name, project, analysis, run, gender, created, no_mismatches) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%d')" % (
+                head_table, sample_name, pr, an, ru, ge, cr, nm)
             c.execute(insert_head)
             db.commit()
             #print(sample_name, " inserted in database")
             f.writelines(["\n" + sample_name + "," + " inserted in database"])
-            select_head_id = "SELECT id FROM heads_flankingreg WHERE sample_name = '%s' AND \
-                                                    project = '%s' AND \
-                                                    analysis = '%s' AND \
-                                                    run = '%s' AND \
-                                                    gender = '%s' AND \
-                                                    created = '%s' AND \
-                                                    no_mismatches = '%d' " % (sample_name, pr, an, ru, ge, cr, nm)
+
+
+            select_head_id = "SELECT id FROM %s WHERE sample_name = '%s' AND \
+                                                                    project = '%s' AND \
+                                                                    analysis = '%s' AND \
+                                                                    run = '%s' AND \
+                                                                    gender = '%s' AND \
+                                                                    created = '%s' AND \
+                                                                    no_mismatches = '%d' " % (
+                head_table, sample_name, pr, an, ru, ge, cr, nm)
+
             c.execute(select_head_id)
             head_id = int(c.fetchone()[0])
             #print (head_id)
@@ -354,8 +366,8 @@ def autoSTR_FR_import2db(in_directory, out_directory, xml_directory, CSV_CE_dire
                     nr = int(Auto_STR_Data[sample_name][marker][x][3])
                     seq = Auto_STR_Data[sample_name][marker][x][4]
                     val = Auto_STR_Data[sample_name][marker][x][5]
-                    insert_Auto_STR = "INSERT INTO autostrdata_flankingreg (sample_name, marker, allele, sequence, no_reads, CE_validation, head_id) \
-                    VALUES ('%s', '%s', '%s', '%s', '%d', '%s', '%d')" % (sample_name, marker, al, seq, nr, val, head_id)
+                    insert_Auto_STR = "INSERT INTO %s (sample_name, marker, allele, sequence, no_reads, CE_validation, head_id) \
+                    VALUES ('%s', '%s', '%s', '%s', '%d', '%s', '%d')" % (auto_table, sample_name, marker, al, seq, nr, val, head_id)
                     c.execute(insert_Auto_STR)
                     db.commit()
                     #print (sample_name, ' ', marker, ' done')

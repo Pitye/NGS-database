@@ -29,15 +29,16 @@ def main():
     sample_names=['AA11-KIGEN-SF26', 'MK2_S2_L001_R1_001']
     length_polymorphism_estimation = True
     use_external_file_for_missing_markers = True
+    Family_tree = False
     directory_STR_lenght_profiles = os.path.normpath('C:/NGS_forensic_database/relationship_LR_estimation/STR_lenght_profiles')
     directory_STR_lenght_frequencies = os.path.normpath('C:/NGS_forensic_database/relationship_LR_estimation/STR_lenght_frequencies')
     directory_reports = os.path.normpath('C:/NGS_forensic_database/relationship_LR_estimation/reports')
     dbPass = 'XXX'
     
-    relationship_LR_estimation (sample_names, length_polymorphism_estimation, use_external_file_for_missing_markers, directory_STR_lenght_profiles, directory_STR_lenght_frequencies, directory_reports, dbPass)
+    relationship_LR_estimation (sample_names, length_polymorphism_estimation, use_external_file_for_missing_markers, Family_tree, directory_STR_lenght_profiles, directory_STR_lenght_frequencies, directory_reports, dbPass)
     
     
-def relationship_LR_estimation (sample_names, length_polymorphism_estimation, use_external_file_for_missing_markers, directory_STR_lenght_profiles, directory_STR_lenght_frequencies, directory_reports, dbPass):
+def relationship_LR_estimation (sample_names, length_polymorphism_estimation, use_external_file_for_missing_markers, Family_tree, directory_STR_lenght_profiles, directory_STR_lenght_frequencies, directory_reports, dbPass):
     print ('Please wait ...')
     if length_polymorphism_estimation == True:
         seq_lenght_types = ['lenght', 'seq']
@@ -111,18 +112,30 @@ def relationship_LR_estimation (sample_names, length_polymorphism_estimation, us
         db = MySQLdb.connect("localhost", "root", dbPass, "NGS_FORENSIC")
         c = db.cursor()
 
+    if Family_tree:
+        table = 'ngs_forensic.nomen_freq_autostrdata_family_tree'
+    else:
+        table = 'ngs_forensic.nomen_freq_autostrdata_flankingreg'
+
+
     for sample in sample_names:
         
-        sql_select_Query = "SELECT * FROM ngs_forensic.nomen_freq_autostrdata_flankingreg where sample_name = '%s'" % (sample)
+        sql_select_Query = "SELECT * FROM %s where sample_name = '%s'" % (table, sample)
         c.execute(sql_select_Query)
         records = c.fetchall()
     
         #print("Total number of rows for sample1: ", c.rowcount)
     
         #print("\nPrinting sample " + sample )
-        for row in records:
+        for rec_tuple in records:
+            row = list(rec_tuple)
             #marker, row[1], allele, row[2], seq_name, row[3], PubMed_ID, row[4], sequence, row[5], no_reads, row[6], CE_validation, row[7], head_id, row[8], avg_no_reads, row[9], count_seq, row[10], frequency, row[11]
-    
+
+            #count frequency for unique alleles
+            if row[11] == None:
+                sql_counted_frequency = "SELECT 1/COUNT(*) from ngs_forensic.autostrdata_flankingreg where marker = '%s' and CE_validation in ('validated_CE', 'validated_no_reads')" % (row[1])
+                c.execute(sql_counted_frequency)
+                row[11] = c.fetchall()[0][0]
             column_index = 2
             for column in columns:
                 sample_records[sample][row[1]][column].append(row[column_index])
@@ -154,7 +167,7 @@ def relationship_LR_estimation (sample_names, length_polymorphism_estimation, us
         for marker in markers:
     
             if sample_records[sample][marker]['allele'] == []:
-                missed_markers[sample].append(marker)   
+                missed_markers[sample].append(marker)
                 if use_external_file_for_missing_markers == True:
                     if STR_profiles_records[sample][marker]['STRallele']!=[]:
                         sample_records[sample][marker]['allele'].append(STR_profiles_records[sample][marker]['STRallele'][0])
@@ -218,6 +231,13 @@ def relationship_LR_estimation (sample_names, length_polymorphism_estimation, us
             return False
     
     def setFrequency (p_q, locus, seq_lenght_type):
+        if systemLinux():
+            db = MySQLdb.connect(user="root", password=dbPass, database="ngs_forensic")
+            c = db.cursor(buffered=True)
+        else:
+            db = MySQLdb.connect("localhost", "root", dbPass, "NGS_FORENSIC")
+            c = db.cursor()
+
         if seq_lenght_type == 'seq' and sample_records[sample_names[0]][locus]['frequency'] != []:
             if p_q == 'p':
                 frequency = sample_records[sample_names[0]][locus]['frequency'][0]
@@ -232,8 +252,15 @@ def relationship_LR_estimation (sample_names, length_polymorphism_estimation, us
     
             if allele in list(STR_frequencies[locus].keys()):   
                 frequency = STR_frequencies[locus][allele]
-            else:
+            elif allele in list(STR_frequencies_database[locus].keys()):
                 frequency = STR_frequencies_database[locus][allele]
+
+            # count STR frequency for unique alleles
+            else:
+                sql_counted_STR_frequency = "SELECT 1/COUNT(*) from ngs_forensic.autostrdata_flankingreg where marker = '%s' and CE_validation in ('validated_CE', 'validated_no_reads')" % (locus)
+                c.execute(sql_counted_STR_frequency)
+                frequency = c.fetchall()[0][0]
+
     
         return frequency
     

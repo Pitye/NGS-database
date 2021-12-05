@@ -49,7 +49,7 @@ __author__ = 'dh8'
 
 if systemLinux():
     print('system is Linux')
-    home = os.path.normpath('/home/pavla/')
+    home = os.path.normpath('/home/ku/')
 else:
     print('system is Windows')
     home = os.path.normpath('C:/')
@@ -182,6 +182,9 @@ class NdiUi(QMainWindow):
         self.mode1booleanCheckBox = QCheckBox("CheckIfSampleInDatabase")
         self.mode1booleanCheckBox.setChecked(True)
 
+        self.mode1booleanCheckBox1 = QCheckBox("Family_tree")
+        self.mode1booleanCheckBox1.setChecked(False)
+
         self.mode1scriptSelector = QComboBox()
         self.mode1scriptSelector.addItems(["AutoSTR_check_no_mismatches", "AutoSTR_import2db", "Y-STR_check_no_mismatches", "Y-STR_import2db"])
 
@@ -203,9 +206,10 @@ class NdiUi(QMainWindow):
         self.mode1Layout.addWidget(self.mode1labelNumber, 5, 0)
         self.mode1Layout.addWidget(self.mode1inputNumber, 5, 1)
         self.mode1Layout.addWidget(self.mode1booleanCheckBox, 6, 0)
-        self.mode1Layout.addWidget(self.mode1scriptSelector, 7, 0)
-        self.mode1Layout.addWidget(self.mode1buttonRun, 7, 1)
-        self.mode1Layout.addWidget(self.mode1labelState, 8, 1)
+        self.mode1Layout.addWidget(self.mode1booleanCheckBox1, 7, 0)
+        self.mode1Layout.addWidget(self.mode1scriptSelector, 8, 0)
+        self.mode1Layout.addWidget(self.mode1buttonRun, 8, 1)
+        self.mode1Layout.addWidget(self.mode1labelState, 9, 1)
         self.mode1Widget.setLayout(self.mode1Layout)
         
     def runMode1(self):
@@ -220,14 +224,15 @@ class NdiUi(QMainWindow):
         dir5 = self.mode1labelDir5.text()
         number = int(self.mode1inputNumber.text())
         boolean = self.mode1booleanCheckBox.isChecked()
+        boolean1 = self.mode1booleanCheckBox1.isChecked()
         script = self.mode1scriptSelector.currentIndex()
         
         #in_directory, out_directory, xml_directory, CSV_CE_directory, no_reads_for_validation, CheckIfSampleInDatabase
         if script == 0:
-            autoSTR_FR_check_no_mismatches(dir1, dir2, dir3, dir4, dir5, number, boolean, self.dbPassw.text())
+            autoSTR_FR_check_no_mismatches(dir1, dir2, dir3, dir4, dir5, number, boolean, boolean1, self.dbPassw.text())
             self.mode1labelState.setText("finished")
         elif script == 1:
-            autoSTR_FR_import2db(dir1, dir2, dir3, dir4, dir5, number, boolean, self.dbPassw.text())
+            autoSTR_FR_import2db(dir1, dir2, dir3, dir4, dir5, number, boolean, boolean1, self.dbPassw.text())
             self.mode1labelState.setText("finished")
         elif script == 2:
             Y_STR_FR_check_no_mismatches(dir1, dir2, dir3, dir4, dir5, number, boolean, self.dbPassw.text())
@@ -259,6 +264,8 @@ class NdiUi(QMainWindow):
 
         self.mode2boolean2CheckBox = QCheckBox("use_external_file_for_missing_markers")
 
+        self.mode2boolean3CheckBox = QCheckBox("Family_tree")
+
         self.mode2buttonDir1 = QPushButton("CE_profiles_directory")
         self.mode2labelDir1 = QLabel(home + os.path.normpath('/NGS_forensic_database/relationship_LR_estimation/STR_lenght_profiles'))
         self.mode2buttonDir1.clicked.connect(partial(self.getBrowseDirName, self.mode2labelDir1))
@@ -282,14 +289,15 @@ class NdiUi(QMainWindow):
         self.mode2Layout.addWidget(self.mode2sampleName2Input, 1, 1)
         self.mode2Layout.addWidget(self.mode2boolean1CheckBox, 2, 0)
         self.mode2Layout.addWidget(self.mode2boolean2CheckBox, 3, 0)
-        self.mode2Layout.addWidget(self.mode2buttonDir1, 4, 0)
-        self.mode2Layout.addWidget(self.mode2labelDir1, 4, 1)
-        self.mode2Layout.addWidget(self.mode2buttonDir2, 5, 0)
-        self.mode2Layout.addWidget(self.mode2labelDir2, 5, 1)
-        self.mode2Layout.addWidget(self.mode2buttonDir3, 6, 0)
-        self.mode2Layout.addWidget(self.mode2labelDir3, 6, 1)
-        self.mode2Layout.addWidget(self.mode2buttonRun, 7, 0)
-        self.mode2Layout.addWidget(self.mode2labelState, 8, 1)
+        self.mode2Layout.addWidget(self.mode2boolean3CheckBox, 4, 0)
+        self.mode2Layout.addWidget(self.mode2buttonDir1, 5, 0)
+        self.mode2Layout.addWidget(self.mode2labelDir1, 5, 1)
+        self.mode2Layout.addWidget(self.mode2buttonDir2, 6, 0)
+        self.mode2Layout.addWidget(self.mode2labelDir2, 6, 1)
+        self.mode2Layout.addWidget(self.mode2buttonDir3, 7, 0)
+        self.mode2Layout.addWidget(self.mode2labelDir3, 7, 1)
+        self.mode2Layout.addWidget(self.mode2buttonRun, 8, 0)
+        self.mode2Layout.addWidget(self.mode2labelState, 9, 1)
 
         self.mode2Widget.setLayout(self.mode2Layout)
 
@@ -312,7 +320,8 @@ class NdiUi(QMainWindow):
         dir3 = self.mode2labelDir3.text()
         boolean1 = self.mode2boolean1CheckBox.isChecked()
         boolean2 = self.mode2boolean2CheckBox.isChecked()
-        relationship_LR_estimation(samples, boolean1, boolean2, dir1, dir2, dir3, self.dbPassw.text())
+        boolean3 = self.mode2boolean3CheckBox.isChecked()
+        relationship_LR_estimation(samples, boolean1, boolean2, boolean3, dir1, dir2, dir3, self.dbPassw.text())
         self.mode2labelState.setText("finished")
         
     def setMode3(self):
@@ -341,7 +350,7 @@ class NdiUi(QMainWindow):
         self.mode3buttonDir3.clicked.connect(partial(self.getBrowseDirName, self.mode3labelDir3))
 
         self.mode3categoriesList = QListWidget()
-        self.mode3categoriesList.addItems(["AutoSTR", "Y-STR"])
+        self.mode3categoriesList.addItems(["AutoSTR", "AutoSTR_Family-tree", "Y-STR"])
         self.mode3categoriesList.setSelectionMode(QAbstractItemView.MultiSelection)
 
         #columns = ['allele', 'seq_name', 'PubMed_ID', 'sequence', 'no_reads', 'CE_validation', 'head_id', 'avg_no_reads', 'count_seq', 'frequency']
@@ -408,7 +417,7 @@ class NdiUi(QMainWindow):
         self.mode4buttonFile1.clicked.connect(partial(self.getBrowseFileName, self.mode4labelFile1))
 
         self.mode4categoriesList = QListWidget()
-        self.mode4categoriesList.addItems(["AutoSTR", "Y-STR"])
+        self.mode4categoriesList.addItems(["AutoSTR", "AutoSTR_Family-tree", "Y-STR"])
         self.mode4categoriesList.setSelectionMode(QAbstractItemView.MultiSelection)
 
         self.mode4buttonRun = QPushButton("run")

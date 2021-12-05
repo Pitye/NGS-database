@@ -31,10 +31,11 @@ def main():
     reports_directory = os.path.normpath('C:/NGS_forensic_database/AutoSTR_check_no_mismatches')
     no_reads_for_validation = 150
     CheckIfSampleInDatabase = True
+    Family_tree = False
     dbPass = 'XXX'
-    autoSTR_FR_check_no_mismatches(in_directory, out_directory, xml_directory, CSV_CE_directory, reports_directory, no_reads_for_validation, CheckIfSampleInDatabase, dbPass)
+    autoSTR_FR_check_no_mismatches(in_directory, out_directory, xml_directory, CSV_CE_directory, reports_directory, no_reads_for_validation, CheckIfSampleInDatabase, Family_tree, dbPass)
 
-def autoSTR_FR_check_no_mismatches(in_directory, out_directory, xml_directory, CSV_CE_directory, reports_directory, no_reads_for_validation, CheckIfSampleInDatabase, dbPass):
+def autoSTR_FR_check_no_mismatches(in_directory, out_directory, xml_directory, CSV_CE_directory, reports_directory, no_reads_for_validation, CheckIfSampleInDatabase, Family_tree, dbPass):
     print('please wait...')
     sheets = ['Autosomal STR Coverage', 'X STR Coverage', 'Y STR Coverage', 'iSNP Coverage']
     
@@ -315,6 +316,12 @@ def autoSTR_FR_check_no_mismatches(in_directory, out_directory, xml_directory, C
     print('Auto_STR_Data done')
 
     if CheckIfSampleInDatabase:
+        if Family_tree:
+            head_table = 'heads_family_tree'
+
+        else:
+            head_table = 'heads_flankingreg'
+
         f.writelines(["\n\n CHECK IF SAMPLES IN DATABASE"])
         if systemLinux():
             db = MySQLdb.connect(user="root", password=dbPass, database="ngs_forensic")
@@ -325,7 +332,7 @@ def autoSTR_FR_check_no_mismatches(in_directory, out_directory, xml_directory, C
 
         sample_names = (list(Auto_STR_Data.keys()))
         for sample_name in sample_names:
-            select_head_id = "SELECT id FROM heads_flankingreg WHERE sample_name = '%s'" % (sample_name)
+            select_head_id = "SELECT id FROM %s WHERE sample_name = '%s'" % (head_table, sample_name)
             c.execute(select_head_id)
             row_count = c.rowcount
             if row_count == 0:
