@@ -14,7 +14,7 @@ def systemLinux():
 def getHome():
     if systemLinux():
         print('system is Linux')
-        homePath = os.path.normpath('/home/pavla/')
+        homePath = os.path.normpath('/home/ku/')
     else:
         print('system is Windows')
         homePath = os.path.normpath('C:/')
@@ -55,11 +55,11 @@ def createPowerSeqProjectInfo(inProjectInfo):
     return PowerSeq_project_info
 
 
-def createUasRaw(inUasDirectory, outUasDirectory, IlluminaMarkers):
+def createUasRaw(inUasDirectory, outUasDirectory, IlluminaMarkers, version):
     UAS_Auto_STR_Head = {}
     UAS_AutoSTRData_raw = {}
-    UAS_sheets = ['Autosomal STR Coverage', 'X STR Coverage', 'Y STR Coverage', 'iSNP Coverage']
-
+    #UAS_sheets = ['Autosomal STR Coverage', 'X STR Coverage', 'Y STR Coverage', 'iSNP Coverage']
+    UAS_sheets = ['Autosomal STR Coverage']
     # delete all in OUT DIRECTORY
     shutil.rmtree(outUasDirectory)
     os.makedirs(outUasDirectory)
@@ -100,39 +100,61 @@ def createUasRaw(inUasDirectory, outUasDirectory, IlluminaMarkers):
                 delimiter=','):
             row_number += 1
             # print (row_number, '', row [0], row [1])
-            if row_number == 3 and row[0] == 'Project':
-                UAS_project_name = row[1]
-                print(UAS_project_name)
-            if row_number == 4 and row[0] == 'Created':
-                UAS_created_name = row[1]
-            if row_number == 5 and row[0] == 'User':
-                UAS_user_name = row[1]
-            if row_number == 13 and row[0] == 'Sample':
-                writing_row_marker = 1
+            if version == 'one report':
+                if row_number == 3 and row[0] == 'Project':
+                    UAS_project_name = row[1]
+                    print(UAS_project_name)
+                if row_number == 4 and row[0] == 'Created':
+                    UAS_created_name = row[1]
+                if row_number == 5 and row[0] == 'User':
+                    UAS_user_name = row[1]
+                if row_number == 13 and row[0] == 'Sample':
+                    writing_row_marker = 1
 
-            # reading data for samples
-            if row_number > 13 and writing_row_marker == 1:
+                # reading data for samples
+                if row_number > 13 and writing_row_marker == 1:
 
-                # first sample starts
-                if UAS_sample_name != row[0] and UAS_sample_name == 'null':
+                    # first sample starts
+                    if UAS_sample_name != row[0] and UAS_sample_name == 'null':
+                        UAS_Auto_STR_Head[row[0]] = {'Project': UAS_project_name, 'Analysis': row[1],
+                                                    'Run': 'user ' + UAS_user_name, 'Gender': 'null',
+                                                    'Created': UAS_created_name}
+                    # new sample starts - second, third, ... not first - new empty dictionary is created
+                    if UAS_sample_name != row[0] and UAS_sample_name != 'null':
+                        UAS_Auto_STR_Head[row[0]] = {'Project': UAS_project_name, 'Analysis': row[1],
+                                                    'Run': 'user ' + UAS_user_name, 'Gender': 'null',
+                                                    'Created': UAS_created_name}
+                        # create empty raw_dictionary and dictionary with homo or hetero alleles for markers
+                        UAS_sample_raw_dict = {marker: [] for marker in IlluminaMarkers}
+
+                    # created Auto_STR_Data_raw[sample_name] = {Locus:[Locus, Allele Name, Typed Allele?, Reads, Repeat Sequence]}
+                    UAS_sample_name = row[0]
+
+                    if row[2] in IlluminaMarkers:
+                        UAS_row_selected = [row[2], row[3], 'N/A', row[4], row[5]]
+                        UAS_sample_raw_dict[row[2]].append(UAS_row_selected)
+                        UAS_AutoSTRData_raw[UAS_sample_name] = UAS_sample_raw_dict
+            if version == 'separate reports for samples':
+                if row_number == 4 and row[0] == 'Project':
+                    UAS_project_name = row[1]
+                    print(UAS_project_name)
+                if row_number == 5 and row[0] == 'Sample':
+                    UAS_sample_name = row[1]
+                if row_number == 7 and row[0] == 'Created':
+                    UAS_created_name = row[1]
+                if row_number == 8 and row[0] == 'User':
+                    UAS_user_name = row[1]
+
                     UAS_Auto_STR_Head[row[0]] = {'Project': UAS_project_name, 'Analysis': row[1],
-                                                 'Run': 'user ' + UAS_user_name, 'Gender': 'null',
-                                                 'Created': UAS_created_name}
-                # new sample starts - second, third, ... not first - new empty dictionary is created
-                if UAS_sample_name != row[0] and UAS_sample_name != 'null':
-                    UAS_Auto_STR_Head[row[0]] = {'Project': UAS_project_name, 'Analysis': row[1],
-                                                 'Run': 'user ' + UAS_user_name, 'Gender': 'null',
-                                                 'Created': UAS_created_name}
-                    # create empty raw_dictionary and dictionary with homo or hetero alleles for markers
-                    UAS_sample_raw_dict = {marker: [] for marker in IlluminaMarkers}
+                                                'Run': 'user ' + UAS_user_name, 'Gender': 'null',
+                                                'Created': UAS_created_name}
 
-                # created Auto_STR_Data_raw[sample_name] = {Locus:[Locus, Allele Name, Typed Allele?, Reads, Repeat Sequence]}
-                UAS_sample_name = row[0]
-
-                if row[2] in IlluminaMarkers:
-                    UAS_row_selected = [row[2], row[3], 'N/A', row[4], row[5]]
-                    UAS_sample_raw_dict[row[2]].append(UAS_row_selected)
-                    UAS_AutoSTRData_raw[UAS_sample_name] = UAS_sample_raw_dict
+                    # created Auto_STR_Data_raw[sample_name] = {Locus:[Locus, Allele Name, Typed Allele?, Reads, Repeat Sequence]}
+                if row_number > 15:
+                    if row[0] in IlluminaMarkers:
+                        UAS_row_selected = [row[0], row[1], 'N/A', row[2], row[3]]
+                        UAS_sample_raw_dict[row[0]].append(UAS_row_selected)
+                        UAS_AutoSTRData_raw[UAS_sample_name] = UAS_sample_raw_dict
     if renameSamples_UAS:
         print('renamed samples UAS:')
         UAS_AutoSTRData_raw = renameSamples(UAS_AutoSTRData_raw, renameDict_UAS)
@@ -225,7 +247,7 @@ def createSTRaitRazorRaw(inSTRaitRazorDirectory, PowerSeqMarkers, PowerSeq_proje
         if file.endswith('.csv'):
             for row in csv.reader(open(inSTRaitRazorDirectory + os.path.normpath('/') + file), delimiter=','):
                 if len(row) > 0 and len(row[0].split("_")) > 3:
-                    if row[0].split("_")[3] == 'R1':
+                    if row[0].split("_")[3] == 'R2':
                         # new sample starts - new empty dictionary is created
                         if SR_sample_name != row[0].split("_")[0].upper():
                             SR_Auto_STR_Head[row[0].split("_")[0].upper()] = {'Project': PowerSeq_project_info[0],
@@ -293,14 +315,14 @@ def selectTrueAlleles(markers, samples, AutoSTR_Data_raw, heterozygozity_dict):
                 sample_dict[marker].append(['Null', '0', 'Null', '0', 'Null'])
                 sample_dict[marker].append(['Null', '0', 'Null', '0', 'Null'])
 
-            if sample_dict['Amelogenin'][0][1] == 'chrX':
+            if sample_dict['Amelogenin'][0][1] == 'chrX' or sample_dict['Amelogenin'][0][1] =='X':
                 sample_dict['Amelogenin'][0][1] = '0'
-            if sample_dict['Amelogenin'][0][1] == 'chrY' or sample_dict['Amelogenin'][0][1] == '1':
+            if sample_dict['Amelogenin'][0][1] == 'chrY' or sample_dict['Amelogenin'][0][1] == '1' or sample_dict['Amelogenin'][0][1] =='Y':
                 sample_dict['Amelogenin'][0][1] = '6'
 
-            if sample_dict['Amelogenin'][1][1] == 'chrX':
+            if sample_dict['Amelogenin'][1][1] == 'chrX' or sample_dict['Amelogenin'][1][1] =='X':
                 sample_dict['Amelogenin'][1][1] = '0'
-            if sample_dict['Amelogenin'][1][1] == 'chrY' or sample_dict['Amelogenin'][1][1] == '1':
+            if sample_dict['Amelogenin'][1][1] == 'chrY' or sample_dict['Amelogenin'][1][1] == '1' or sample_dict['Amelogenin'][1][1] =='Y':
                 sample_dict['Amelogenin'][1][1] = '6'
 
             if sample_dict[marker][0][1] == 'Unknown':
@@ -440,30 +462,34 @@ def sortListByValue(str_list):
     return sorted_list_str
 
 # reports_list = ['STRaitRazor', 'GeneMarker', 'UAS']
-reports_list = ['STRaitRazor',  'UAS']
-# reports_list = ['GeneMarker', 'UAS']
+# reports_list = ['STRaitRazor',  'UAS']
+#reports_list = ['GeneMarker', 'UAS']
 #reports_list = ['STRaitRazor', 'GeneMarker']
 # reports_list = ['STRaitRazor']
 # reports_list = ['GeneMarker']
-# reports_list = ['UAS']
+reports_list = ['UAS']
 reports_list.sort()
 
 #renameDict_SR = {'5-25': '5-49', '5-33': 'JO23', '5-34': 'JO24', '5-36': 'MJ2', '5-37': 'MJ3', '5-38': 'MJ4',
                # '5-39': 'MJ5', '5-49': '5-25', 'JO23': '5-33', 'JO24': '5-34', 'MJ1': '5-35', 'MJ2': '5-36','MJ3': '5-37', 'MJ4': '5-38', 'MJ5': '5-39'}
 # renameDict_SR = {'3499':'3491', '3500':'3492', '3501':'3493', '3502':'3494', '3503':'3495', '3504':'3496', '3505':'3497', '3506':'3498', '3507':'3499', '3508':'3500', '3509':'3501', '3510':'3502', '3511':'3503', '3512':'3504', '3513':'3505', '3514':'3506', '3515':'3507', '3516':'3508', '3517':'3509', '3518':'3510', '3519':'3511', '3520':'3512', '3521':'3513', '3522':'3514', '3523':'3515', '3524':'3516', '3525':'3517', '3526':'3518', '3527':'3519', '3528':'3520', '3529':'3521', '3530':'3522', '3531':'3523', '3532':'3524', '3533':'3525', '3534':'3526', '3535':'3527', '3536':'3528', '3537':'3529', '3539':'3530', '3540':'3531', '3541':'3532', '8349':'3533', '8350':'3534', '8351':'3535', '8352':'3536', '8353':'3537', '8354':'3539', '8355':'3540', '8356':'3541', '8357':'8349', '8358':'8350', '8359':'8351', '8360':'8352', '8361':'8353', '8362':'8354', '8363':'8355', '8364':'8356', '8365':'8357', '8366':'8358', '8367':'8359', '8368':'8360', '8369':'8361', '8370':'8362'}
 # renameDict_GM = {'3499':'3491', '3500':'3492', '3501':'3493', '3502':'3494', '3503':'3495', '3504':'3496', '3505':'3497', '3506':'3498', '3507':'3499', '3508':'3500', '3509':'3501', '3510':'3502', '3511':'3503', '3512':'3504', '3513':'3505', '3514':'3506', '3515':'3507', '3516':'3508', '3517':'3509', '3518':'3510', '3519':'3511', '3520':'3512', '3521':'3513', '3522':'3514', '3523':'3515', '3524':'3516', '3525':'3517', '3526':'3518', '3527':'3519', '3528':'3520', '3529':'3521', '3530':'3522', '3531':'3523', '3532':'3524', '3533':'3525', '3534':'3526', '3535':'3527', '3536':'3528', '3537':'3529', '3539':'3530', '3540':'3531', '3541':'3532', '8349':'3533', '8350':'3534', '8351':'3535', '8352':'3536', '8353':'3537', '8354':'3539', '8355':'3540', '8356':'3541', '8357':'8349', '8358':'8350', '8359':'8351', '8360':'8352', '8361':'8353', '8362':'8354', '8363':'8355', '8364':'8356', '8365':'8357', '8366':'8358', '8367':'8359', '8368':'8360', '8369':'8361', '8370':'8362'}
-renameDict_SR = {'R701-A501': '1_38', 'R701-A502': '1_39', 'R701-A503': '1_40', 'R701-A504': '1_41', 'R701-A506': '1_42', 'R701-A507': '1_43', 'R701-A505': '1_44', 'R701-A508': '1_45', 'R702-A501': '1_46', 'R702-A502': '1_47', 'R702-A503': '1_48', 'R702-A504': '5_09', 'R702-A506': '5_20', 'R702-A507': '5_22', 'R702-A505': '5_23', 'R702-A508': '5_24', 'R703-A501': '5_25', 'R703-A502': '5_33', 'R703-A503': '5_34', 'R703-A504': '5_35', 'R703-A506': '5_36', 'R703-A507': '5_37', 'R703-A505': '5_38', 'R703-A508': '5_39', 'R704-A501': '5_49', 'R704-A502': 'JO23', 'R704-A503': 'JO24', 'R704-A504': 'MJ1', 'R704-A506': 'MJ2', 'R704-A507': 'MJ3', 'R704-A505': 'MJ4', 'R704-A508': 'MJ5', 'R705-A501': 'MJ6', 'R705-A502': 'MJ7', 'R705-A503': 'MJ8', 'R705-A504': 'MJ9', 'R705-A506': '1_01', 'R705-A507': '1_02', 'R705-A505': '1_08', 'R705-A508': '1_14', 'R706-A501': '1_18', 'R706-A502': '1_20', 'R706-A503': '1_23', 'R706-A504': '1_25', 'R706-A506': '1_31', 'R706-A507': '1_34', 'R706-A505': 'PK', 'R706-A508': 'NK', 'R707-A501': 'kost 5158', 'R707-A502': '4_01'}
+#renameDict_SR = {'R701-A501': '1_38', 'R701-A502': '1_39', 'R701-A503': '1_40', 'R701-A504': '1_41', 'R701-A506': '1_42', 'R701-A507': '1_43', 'R701-A505': '1_44', 'R701-A508': '1_45', 'R702-A501': '1_46', 'R702-A502': '1_47', 'R702-A503': '1_48', 'R702-A504': '5_09', 'R702-A506': '5_20', 'R702-A507': '5_22', 'R702-A505': '5_23', 'R702-A508': '5_24', 'R703-A501': '5_25', 'R703-A502': '5_33', 'R703-A503': '5_34', 'R703-A504': '5_35', 'R703-A506': '5_36', 'R703-A507': '5_37', 'R703-A505': '5_38', 'R703-A508': '5_39', 'R704-A501': '5_49', 'R704-A502': 'JO23', 'R704-A503': 'JO24', 'R704-A504': 'MJ1', 'R704-A506': 'MJ2', 'R704-A507': 'MJ3', 'R704-A505': 'MJ4', 'R704-A508': 'MJ5', 'R705-A501': 'MJ6', 'R705-A502': 'MJ7', 'R705-A503': 'MJ8', 'R705-A504': 'MJ9', 'R705-A506': '1_01', 'R705-A507': '1_02', 'R705-A505': '1_08', 'R705-A508': '1_14', 'R706-A501': '1_18', 'R706-A502': '1_20', 'R706-A503': '1_23', 'R706-A504': '1_25', 'R706-A506': '1_31', 'R706-A507': '1_34', 'R706-A505': 'PK', 'R706-A508': 'NK', 'R707-A501': 'kost 5158', 'R707-A502': '4_01'}
 # renameDict_GM = {'5-25': '5-49', '5-33': 'JO23', '5-34': 'JO24', '5-36': 'MJ2', '5-37': 'MJ3', '5-38': 'MJ4',
 #                '5-39': 'MJ5', '5-49': '5-25', 'JO23': '5-33', 'JO24': '5-34', 'MJ1': '5-35', 'MJ2': '5-36',
 #                 'MJ3': '5-37', 'MJ4': '5-38', 'MJ5': '5-39'}
-renameDict_UAS = {}
-renameSamples_SR = True
-# renameSamples_GM = True
-renameSamples_UAS = False
+renameDict_UAS = {'7_A':'7A', '8_A':'8A', '2_B':'2B', '2_A':'2A', '6_B':'6B', '6_A':'6A', '1_B':'1B', '9_A':'9A', '1_A':'1A', '3_A':'3A', '4_A':'4A', '4_B':'4B', '5_A':'5A', '8_B':'8B', '3_B':'3B', '9_B':'9B', '5_B':'5B', '7_B':'7B'}
+samples_compar_dict = {'1A' :'1B', '2A':'2B', '3A':'3B', '4A':'4B', '5A':'5B', '6A':'6B', '7A':'7B', '8A':'8B', '9A':'9B', '10A':'10B', '11A':'11B', '12A':'12B', '13A':'13B', '14A':'14B', '15A':'15B', '16A':'16B', '17A':'17B', '18A':'18B', '19A':'19B', '20A':'20B', '21A':'21B', '22A':'22B', '23A':'23B'}
+renameSamples_SR = False
+renameSamples_GM = False
+renameSamples_UAS = True
 
 printMatches = True
-CE_comparison = False
+CE_comparison = True
 home = getHome()
+
+# UAS version - 'one report' or 'separate reports for samples'
+version = 'separate reports for samples'
 
 # setup of input directories
 in_UAS_directory = home + os.path.normpath('/NGS_forensic_database/xlsx_detail_reports')
@@ -493,6 +519,12 @@ Illumina_markers_heterozygozity_dict = {'Amelogenin': 0.5, 'D1S1656': 0.5, 'TPOX
                                         'TH01': 0.5, 'vWA': 0.5, 'D12S391': 0.5, 'D13S317': 0.5, 'PentaE': 0.5,
                                         'D16S539': 0.5, 'D17S1301': 0.5, 'D18S51': 0.5, 'D19S433': 0.5, 'D20S482': 0.5,
                                         'D21S11': 0.5, 'PentaD': 0.5, 'D22S1045': 0.5}
+#Illumina_markers_heterozygozity_dict = {'Amelogenin': 0.3, 'D1S1656': 0.3, 'TPOX': 0.3, 'D2S441': 0.3, 'D2S1338': 0.3,
+#                                       'D3S1358': 0.3, 'D4S2408': 0.3, 'FGA': 0.3, 'D5S818': 0.3, 'CSF1PO': 0.3,
+#                                       'D6S1043': 0.3, 'D7S820': 0.3, 'D8S1179': 0.3, 'D9S1122': 0.3, 'D10S1248': 0.3,
+#                                       'TH01': 0.3, 'vWA': 0.3, 'D12S391': 0.3, 'D13S317': 0.3, 'PentaE': 0.3,
+#                                       'D16S539': 0.3, 'D17S1301': 0.3, 'D18S51': 0.3, 'D19S433': 0.3, 'D20S482': 0.3,
+#                                       'D21S11': 0.3, 'PentaD': 0.3, 'D22S1045': 0.3}
 Illumina_markers = list(Illumina_markers_heterozygozity_dict.keys())
 
 GM_threshold = 10
@@ -513,7 +545,7 @@ if 'GeneMarker' in reports_list or 'STRaitRazor' in reports_list:
     PowerSeq_ProjectInfo = createPowerSeqProjectInfo(in_project_info)
 
 if 'UAS' in reports_list:
-    UAS_raw = createUasRaw(in_UAS_directory, out_UAS_directory, Illumina_markers)
+    UAS_raw = createUasRaw(in_UAS_directory, out_UAS_directory, Illumina_markers, version)
     UAS_Head = getAuto_STR_Head(UAS_raw)
     UAS_Auto_STR_Data_raw = getAuto_STR_Data_raw(UAS_raw)
     UAS_samples = list(UAS_Auto_STR_Data_raw.keys())
@@ -527,6 +559,12 @@ if 'GeneMarker' in reports_list:
     GM_samples = list(GM_Auto_STR_Data_raw.keys())
     GM_Auto_STR_Data = selectTrueAlleles(PowerSeq_markers, GM_samples, GM_Auto_STR_Data_raw,
                                          PowerSeq_markers_heterozygozity_dict)
+    # print for comparison in GM
+    for sample in GM_samples:
+        for marker in PowerSeq_markers:
+            #print(sample, marker, markerAlleleList(GM_Auto_STR_Data, sample, marker), markerNoReadsList(GM_Auto_STR_Data, sample, marker))
+            print(sample, marker, markerAlleleList(GM_Auto_STR_Data, sample, marker))
+
     print('GeneMarker samples: ', GM_samples)
 if 'STRaitRazor' in reports_list:
     SR_raw = createSTRaitRazorRaw(in_STRaitRazor_directory, PowerSeq_markers, PowerSeq_ProjectInfo)
@@ -536,6 +574,7 @@ if 'STRaitRazor' in reports_list:
     SR_Auto_STR_Data = selectTrueAlleles(PowerSeq_markers, SR_samples, SR_Auto_STR_Data_raw,
                                          PowerSeq_markers_heterozygozity_dict)
     print('STRaitRazor samples: ', SR_samples)
+
 
 if CE_comparison:
     CE_csv_dict = readCsvCE(in_CE_csv_directory)
@@ -687,4 +726,15 @@ if len(reports_list) == 3:
     compare3analysis(reports_list)
 print('comparison finished')
 
-
+for s in UAS_samples:
+    matchList = []
+    if s.endswith('A') and s in samples_compar_dict.keys():
+        s2 = samples_compar_dict[s]
+        for m in Illumina_markers:
+            if [UAS_Auto_STR_Data[s][m][0][1], UAS_Auto_STR_Data[s][m][1][1], UAS_Auto_STR_Data[s][m][0][4], UAS_Auto_STR_Data[s][m][1][4]] != [UAS_Auto_STR_Data[s2][m][0][1], UAS_Auto_STR_Data[s2][m][1][1], UAS_Auto_STR_Data[s2][m][0][4], UAS_Auto_STR_Data[s2][m][1][4]]:
+                print ('no match:')
+                print (s, m, [UAS_Auto_STR_Data[s][m][0][1], UAS_Auto_STR_Data[s][m][1][1], UAS_Auto_STR_Data[s][m][0][4], UAS_Auto_STR_Data[s][m][1][4]])
+                print (s2, m, [UAS_Auto_STR_Data[s2][m][0][1], UAS_Auto_STR_Data[s2][m][1][1], UAS_Auto_STR_Data[s2][m][0][4], UAS_Auto_STR_Data[s2][m][1][4]])
+            else:
+                matchList.append(m)
+        print(s, s2, 'match markers:', matchList)
