@@ -19,7 +19,7 @@ project varchar(50) NOT NULL,
 analysis varchar(50) NOT NULL,
 run varchar(50) NOT NULL,
 gender varchar(50) NOT NULL,
-created varchar(100) NOT NULL,                             
+created varchar(100) NOT NULL,
 no_mismatches int,
 PRIMARY KEY (id)
 );
@@ -43,7 +43,7 @@ project varchar(50) NOT NULL,
 analysis varchar(50) NOT NULL,
 run varchar(50) NOT NULL,
 gender varchar(50) NOT NULL,
-created varchar(100) NOT NULL,                             
+created varchar(100) NOT NULL,
 no_mismatches_y int,
 PRIMARY KEY (id)
 );
@@ -55,7 +55,7 @@ project varchar(50) NOT NULL,
 analysis varchar(50) NOT NULL,
 run varchar(50) NOT NULL,
 gender varchar(50) NOT NULL,
-created varchar(100) NOT NULL,                             
+created varchar(100) NOT NULL,
 no_mismatches_x int,
 PRIMARY KEY (id)
 );
@@ -178,141 +178,323 @@ CREATE TABLE ngs_forensic.y_strdata_flankingreg (
   CONSTRAINT head_y_fk_FR FOREIGN KEY (head_y_id) REFERENCES heads_y_flankingreg (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-create view ngs_forensic.markerautostrview as 
-select m.marker, m.allele,  m.sequence,  m. avg_no_reads, m.count_seq, m.count_seq/n.sum_count_seq  as frequency 
-from (select distinct (a.sequence), a.allele, a.marker, t.count_seq, t.avg_no_reads
-			from autostrdata AS a
-			JOIN ( select sequence, marker,
-                count(sequence) AS count_seq, avg(no_reads) AS avg_no_reads
-                from autostrdata
-                group by  sequence, marker) AS t 
-				ON a.sequence = t.sequence AND a.marker = t.marker 
-				where  a.CE_validation = 'validated_CE' or a.CE_validation = 'validated_no_reads' ) as m
-join  (select marker,  sum(count_seq) as sum_count_seq
-			from (select distinct (a.sequence), a.allele, a.marker, t.count_seq, t.avg_no_reads
-			from autostrdata AS a
-			JOIN ( select sequence, marker,
-                count(sequence) AS count_seq, avg(no_reads) AS avg_no_reads
-                from autostrdata
-                group by  sequence, marker) AS t 
-				ON a.sequence = t.sequence AND a.marker = t.marker
-				where  a.CE_validation = 'validated_CE' or a.CE_validation = 'validated_no_reads' ) as x
-            group by marker) as n
-on m.marker = n.marker 
-order by marker, allele ; 
+CREATE VIEW ngs_forensic.marker_auto_strview as
+SELECT  a.marker,
+        a.allele,
+        a.sequence,
+       avg(a.no_reads)   AS avg_no_reads,
+	   count(*) AS count_seq,
+	   count(*)/ c.marker_count_seq AS frequency
+FROM   ngs_forensic.autostrdata AS a
+LEFT JOIN
+(
+    SELECT marker,
+	       count(*) AS marker_count_seq
+    FROM   ngs_forensic.autostrdata
+    WHERE  sequence != ''
+    GROUP  BY  marker
+ )  AS c
+ON a.marker = c.marker
+WHERE a.sequence != ''
+GROUP BY a.marker,
+        a.allele,
+        a.sequence
+ORDER BY a.marker,
+        a.allele,
+        a.sequence
+;
 
-CREATE VIEW ngs_forensic.markerautostrview_flankingreg 
-AS 
-  SELECT m.marker, 
-         m.allele, 
-         m.SEQUENCE, 
-         m. avg_no_reads, 
-         m.count_seq, 
-         m.count_seq / n.sum_count_seq AS frequency 
-  FROM   (SELECT DISTINCT ( a.SEQUENCE ), 
-                          a.allele, 
-                          a.marker, 
-                          t.count_seq, 
-                          t.avg_no_reads 
-          FROM   autostrdata_flankingreg AS a 
-                 join (SELECT SEQUENCE, 
-                              marker, 
-                              Count(SEQUENCE) AS count_seq, 
-                              Avg(no_reads)   AS avg_no_reads 
-                       FROM   autostrdata_flankingreg 
-                       GROUP  BY SEQUENCE, 
-                                 marker) AS t 
-                   ON a.SEQUENCE = t.SEQUENCE 
-                      AND a.marker = t.marker 
-          WHERE  a.ce_validation = 'validated_CE' 
-                  OR a.ce_validation = 'validated_no_reads') AS m 
-         join (SELECT marker, 
-                      SUM(count_seq) AS sum_count_seq 
-               FROM   (SELECT DISTINCT ( a.SEQUENCE ), 
-                                       a.allele, 
-                                       a.marker, 
-                                       t.count_seq, 
-                                       t.avg_no_reads 
-                       FROM   autostrdata_flankingreg AS a 
-                              join (SELECT SEQUENCE, 
-                                           marker, 
-                                           Count(SEQUENCE) AS count_seq, 
-                                           Avg(no_reads)   AS avg_no_reads 
-                                    FROM   autostrdata_flankingreg 
-                                    GROUP  BY SEQUENCE, 
-                                              marker) AS t 
-                                ON a.SEQUENCE = t.SEQUENCE 
-                                   AND a.marker = t.marker 
-                       WHERE  a.ce_validation = 'validated_CE' 
-                               OR a.ce_validation = 'validated_no_reads') AS x 
-               GROUP  BY marker) AS n 
-           ON m.marker = n.marker 
-  ORDER  BY marker, 
-            allele; 
+CREATE VIEW ngs_forensic.marker_auto_strview_validated_only as
+SELECT  a.marker,
+        a.allele,
+        a.sequence,
+       avg(a.no_reads)   AS avg_no_reads,
+	   count(*) AS count_seq,
+	   count(*)/ c.marker_count_seq AS frequency
+FROM   ngs_forensic.autostrdata AS a
+LEFT JOIN
+(
+    SELECT marker,
+	       count(*) AS marker_count_seq
+    FROM   ngs_forensic.autostrdata
+    WHERE  ce_validation = 'validated_CE'
+           OR ce_validation = 'validated_no_reads'
+    GROUP  BY  marker
+ )  AS c
+ON a.marker = c.marker
+WHERE  a.ce_validation = 'validated_CE'
+       OR a.ce_validation = 'validated_no_reads'
+GROUP BY a.marker,
+        a.allele,
+        a.sequence
+ORDER BY a.marker,
+        a.allele,
+        a.sequence
+;
 
-create view ngs_forensic.markery_strview as 
-select m.marker, m.allele,  m.sequence,  m. avg_no_reads, m.count_seq, m.count_seq/n.sum_count_seq  as frequency 
-from (select distinct (a.sequence), a.allele, a.marker, t.count_seq, t.avg_no_reads
-			from y_strdata AS a
-			JOIN ( select sequence, marker,
-                count(sequence) AS count_seq, avg(no_reads) AS avg_no_reads
-                from y_strdata
-                group by  sequence, marker) AS t 
-				ON a.sequence = t.sequence AND a.marker = t.marker 
-				where  a.CE_validation = 'validated_CE' or a.CE_validation = 'validated_no_reads' ) as m
-join  (select marker,  sum(count_seq) as sum_count_seq
-			from (select distinct (a.sequence), a.allele, a.marker, t.count_seq, t.avg_no_reads
-			from y_strdata AS a
-			JOIN ( select sequence, marker, 
-                count(sequence) AS count_seq, avg(no_reads) AS avg_no_reads
-                from y_strdata
-                group by  sequence, marker) AS t 
-				ON a.sequence = t.sequence AND a.marker = t.marker 
-				where  a.CE_validation = 'validated_CE' or a.CE_validation = 'validated_no_reads' ) as x
-            group by marker) as n
-on m.marker = n.marker 
-order by marker, allele ;  
+CREATE VIEW ngs_forensic.marker_auto_strview_flankingreg as
+SELECT  a.marker,
+        a.allele,
+        a.sequence,
+       avg(a.no_reads)   AS avg_no_reads,
+	   count(*) AS count_seq,
+	   count(*)/ c.marker_count_seq AS frequency
+FROM   ngs_forensic.autostrdata_flankingreg AS a
+LEFT JOIN
+(
+    SELECT marker,
+	       count(*) AS marker_count_seq
+    FROM   ngs_forensic.autostrdata_flankingreg
+    WHERE  sequence != ''
+    GROUP  BY  marker
+ )  AS c
+ON a.marker = c.marker
+WHERE a.sequence != ''
+GROUP BY a.marker,
+        a.allele,
+        a.sequence
+ORDER BY a.marker,
+        a.allele,
+        a.sequence
+;
+
+CREATE VIEW ngs_forensic.marker_auto_strview_flankingreg_validated_only as
+SELECT  a.marker,
+        a.allele,
+        a.sequence,
+       avg(a.no_reads)   AS avg_no_reads,
+	   count(*) AS count_seq,
+	   count(*)/ c.marker_count_seq AS frequency
+FROM   ngs_forensic.autostrdata_flankingreg AS a
+LEFT JOIN
+(
+    SELECT marker,
+	       count(*) AS marker_count_seq
+    FROM   ngs_forensic.autostrdata_flankingreg
+    WHERE  ce_validation = 'validated_CE'
+           OR ce_validation = 'validated_no_reads'
+    GROUP  BY  marker
+ )  AS c
+ON a.marker = c.marker
+WHERE  a.ce_validation = 'validated_CE'
+       OR a.ce_validation = 'validated_no_reads'
+GROUP BY a.marker,
+        a.allele,
+        a.sequence
+ORDER BY a.marker,
+        a.allele,
+        a.sequence
+;
+
+CREATE VIEW ngs_forensic.marker_y_strview as
+SELECT  a.marker,
+        a.allele,
+        a.sequence,
+       avg(a.no_reads)   AS avg_no_reads,
+	   count(*) AS count_seq,
+	   count(*)/ c.marker_count_seq AS frequency
+FROM   ngs_forensic.y_strdata AS a
+LEFT JOIN
+(
+    SELECT marker,
+	       count(*) AS marker_count_seq
+    FROM   ngs_forensic.y_strdata
+    WHERE  sequence != ''
+    GROUP  BY  marker
+ )  AS c
+ON a.marker = c.marker
+WHERE a.sequence != ''
+GROUP BY a.marker,
+        a.allele,
+        a.sequence
+ORDER BY a.marker,
+        a.allele,
+        a.sequence
+;
+
+CREATE VIEW ngs_forensic.marker_y_strview_validated_only as
+SELECT  a.marker,
+        a.allele,
+        a.sequence,
+       avg(a.no_reads)   AS avg_no_reads,
+	   count(*) AS count_seq,
+	   count(*)/ c.marker_count_seq AS frequency
+FROM   ngs_forensic.y_strdata AS a
+LEFT JOIN
+(
+    SELECT marker,
+	       count(*) AS marker_count_seq
+    FROM   ngs_forensic.y_strdata
+    WHERE  ce_validation = 'validated_CE'
+           OR ce_validation = 'validated_no_reads'
+    GROUP  BY  marker
+ )  AS c
+ON a.marker = c.marker
+WHERE  a.ce_validation = 'validated_CE'
+       OR a.ce_validation = 'validated_no_reads'
+GROUP BY a.marker,
+        a.allele,
+        a.sequence
+ORDER BY a.marker,
+        a.allele,
+        a.sequence
+;
+
+CREATE VIEW ngs_forensic.marker_y_strview_flankingreg as
+SELECT  a.marker,
+        a.allele,
+        a.sequence,
+       avg(a.no_reads)   AS avg_no_reads,
+	   count(*) AS count_seq,
+	   count(*)/ c.marker_count_seq AS frequency
+FROM   ngs_forensic.y_strdata_flankingreg AS a
+LEFT JOIN
+(
+    SELECT marker,
+	       count(*) AS marker_count_seq
+    FROM   ngs_forensic.y_strdata_flankingreg
+    WHERE  sequence != ''
+    GROUP  BY  marker
+ )  AS c
+ON a.marker = c.marker
+WHERE a.sequence != ''
+GROUP BY a.marker,
+        a.allele,
+        a.sequence
+ORDER BY a.marker,
+        a.allele,
+        a.sequence
+;
+
+CREATE VIEW ngs_forensic.marker_y_strview_flankingreg_validated_only as
+SELECT  a.marker,
+        a.allele,
+        a.sequence,
+       avg(a.no_reads)   AS avg_no_reads,
+	   count(*) AS count_seq,
+	   count(*)/ c.marker_count_seq AS frequency
+FROM   ngs_forensic.y_strdata_flankingreg AS a
+LEFT JOIN
+(
+    SELECT marker,
+	       count(*) AS marker_count_seq
+    FROM   ngs_forensic.y_strdata_flankingreg
+    WHERE  ce_validation = 'validated_CE'
+           OR ce_validation = 'validated_no_reads'
+    GROUP  BY  marker
+ )  AS c
+ON a.marker = c.marker
+WHERE  a.ce_validation = 'validated_CE'
+       OR a.ce_validation = 'validated_no_reads'
+GROUP BY a.marker,
+        a.allele,
+        a.sequence
+ORDER BY a.marker,
+        a.allele,
+        a.sequence
+;
+ 
+CREATE VIEW ngs_forensic.marker_x_strview as
+SELECT  a.marker,
+        a.allele,
+        a.sequence,
+       avg(a.no_reads)   AS avg_no_reads,
+	   count(*) AS count_seq,
+	   count(*)/ c.marker_count_seq AS frequency
+FROM   ngs_forensic.x_strdata AS a
+LEFT JOIN
+(
+    SELECT marker,
+	       count(*) AS marker_count_seq
+    FROM   ngs_forensic.x_strdata
+    WHERE  sequence != ''
+    GROUP  BY  marker
+ )  AS c
+ON a.marker = c.marker
+WHERE a.sequence != ''
+GROUP BY a.marker,
+        a.allele,
+        a.sequence
+ORDER BY a.marker,
+        a.allele,
+        a.sequence
+;
+
+CREATE VIEW ngs_forensic.marker_x_strview_validated_only as
+SELECT  a.marker,
+        a.allele,
+        a.sequence,
+       avg(a.no_reads)   AS avg_no_reads,
+	   count(*) AS count_seq,
+	   count(*)/ c.marker_count_seq AS frequency
+FROM   ngs_forensic.x_strdata AS a
+LEFT JOIN
+(
+    SELECT marker,
+	       count(*) AS marker_count_seq
+    FROM   ngs_forensic.x_strdata
+    WHERE  ce_validation = 'validated_CE'
+           OR ce_validation = 'validated_no_reads'
+    GROUP  BY  marker
+ )  AS c
+ON a.marker = c.marker
+WHERE  a.ce_validation = 'validated_CE'
+       OR a.ce_validation = 'validated_no_reads'
+GROUP BY a.marker,
+        a.allele,
+        a.sequence
+ORDER BY a.marker,
+        a.allele,
+        a.sequence
+; 
 
 
-create view ngs_forensic.markerx_strview as 
-select m.marker, m.allele,  m.sequence,  m. avg_no_reads, m.count_seq, m.count_seq/n.sum_count_seq  as frequency 
-from (select distinct (a.sequence), a.allele, a.marker, t.count_seq, t.avg_no_reads
-			from x_strdata AS a
-			JOIN ( select sequence, marker, 
-                count(sequence) AS count_seq, avg(no_reads) AS avg_no_reads
-                from x_strdata
-                group by  sequence, marker) AS t 
-				ON a.sequence = t.sequence AND a.marker = t.marker 
-				where  a.CE_validation = 'validated_CE' or a.CE_validation = 'validated_no_reads' ) as m
-join  (select marker,  sum(count_seq) as sum_count_seq
-			from (select distinct (a.sequence), a.allele, a.marker, t.count_seq, t.avg_no_reads
-			from x_strdata AS a
-			JOIN ( select sequence, marker,
-                count(sequence) AS count_seq, avg(no_reads) AS avg_no_reads
-                from x_strdata
-                group by  sequence, marker) AS t 
-				ON a.sequence = t.sequence AND a.marker = t.marker 
-				where  a.CE_validation = 'validated_CE' or a.CE_validation = 'validated_no_reads' ) as x
-            group by marker) as n
-on m.marker = n.marker 
-order by marker, allele ;  
+CREATE VIEW ngs_forensic.marker_snp_view as
+SELECT  a.marker,
+        a.allele,
+       avg(a.no_reads)   AS avg_no_reads,
+	   count(*) AS count_allele,
+	   count(*)/ c.marker_count_allele AS frequency
+FROM   ngs_forensic.snpdata AS a
+LEFT JOIN
+(
+    SELECT marker,
+	       count(*) AS marker_count_allele
+    FROM   ngs_forensic.snpdata
+    WHERE  allele != ''
+    GROUP  BY  marker
+ )  AS c
+ON a.marker = c.marker
+WHERE a.allele != ''
+GROUP BY a.marker,
+         a.allele
+ORDER BY a.marker,
+         a.allele
+;
 
-create view ngs_forensic.markersnpview as 
-select t1.marker, t1.allele,  t1.avg_no_reads, t1.count_allele, t1.count_allele/t2.sum_count_allele as frequency
-from (select t.allele, t.marker, t.validation_by_no_reads, count(t.allele) AS count_allele, avg(t.no_reads) AS avg_no_reads
-			from snpdata as t
-			where validation_by_no_reads = 'validated_no_reads'
-			group by  allele, marker, validation_by_no_reads
-			) as t1
-join ( select t1.marker, t1.validation_by_no_reads, sum(t1.count_allele) as sum_count_allele
-		from (select t.allele, t.marker, t.validation_by_no_reads, count(t.allele) AS count_allele, avg(t.no_reads) AS avg_no_reads
-			from snpdata as t
-			where validation_by_no_reads = 'validated_no_reads'
-			group by  allele, marker, validation_by_no_reads
-			) as t1
-			group by  marker, validation_by_no_reads ) as t2
- on  t1.marker = t2.marker
- order by marker, allele; 
+CREATE VIEW ngs_forensic.marker_snp_view_validated_only as
+SELECT  a.marker,
+        a.allele,
+       avg(a.no_reads)   AS avg_no_reads,
+	   count(*) AS count_allele,
+	   count(*)/ c.marker_count_allele AS frequency
+FROM   ngs_forensic.snpdata AS a
+LEFT JOIN
+(
+    SELECT marker,
+	       count(*) AS marker_count_allele
+    FROM   ngs_forensic.snpdata
+    WHERE validation_by_no_reads = 'validated_no_reads'
+    GROUP  BY  marker
+ )  AS c
+ON a.marker = c.marker
+WHERE validation_by_no_reads = 'validated_no_reads'
+GROUP BY a.marker,
+         a.allele
+ORDER BY a.marker,
+         a.allele
+;
+
 
 CREATE VIEW ngs_forensic.nomenclature_autostrdata AS
     SELECT 
@@ -342,7 +524,7 @@ CREATE VIEW ngs_forensic.nomenclature_autostrdata AS
             
             
 
-CREATE VIEW ngs_forensic.nomenclature_markerautostrview AS
+CREATE VIEW ngs_forensic.nomenclature_marker_auto_strview AS
     SELECT 
         m.marker AS marker,
         m.allele AS allele,
@@ -354,7 +536,7 @@ CREATE VIEW ngs_forensic.nomenclature_markerautostrview AS
         n.PubMed_Nomenclature_AutoSTR_Illumina_longseq AS PubMed_Nomenclature_AutoSTR_Illumina_longseq,
         n.PubMed_ID AS PubMed_ID
     FROM
-        (ngs_forensic.markerautostrview m
+        (ngs_forensic.marker_auto_strview m
         LEFT JOIN (SELECT 
             n1.locus AS locus,
                 n1.PubMed_ID AS PubMed_ID,
@@ -371,7 +553,7 @@ CREATE VIEW ngs_forensic.nomenclature_markerautostrview AS
             AND (m.marker = n.locus))))
     ORDER BY m.marker , m.allele;
 		 
-CREATE VIEW ngs_forensic.nomenclature_markerautostrview_flankingreg 
+CREATE VIEW ngs_forensic.nomenclature_marker_auto_strview_flankingreg 
 AS 
   SELECT t.marker                                       AS marker, 
          t.allele                                       AS allele, 
@@ -395,7 +577,7 @@ AS
                  n.pubmed_id                                    AS PubMed_ID, 
                  n.present_in_illumina                          AS 
                  present_in_Illumina 
-          FROM   markerautostrview_flankingreg AS m 
+          FROM   ngs_forensic.marker_auto_strview_flankingreg AS m 
                  LEFT JOIN nomenclature_autostr AS n 
                         ON n.locus = m.marker 
                            AND n.allele = m.allele 
@@ -405,7 +587,7 @@ AS
           OR t.present_in_illumina = 'no'; 
   
     
-CREATE VIEW ngs_forensic.nomen_freq_autostrdata AS
+CREATE VIEW ngs_forensic.nomen_freq_auto_strdata AS
     SELECT 
         b.sample_name AS sample_name,
         b.marker AS marker,
@@ -420,12 +602,13 @@ CREATE VIEW ngs_forensic.nomen_freq_autostrdata AS
         c.count_seq AS count_seq,
         c.frequency AS frequency
     FROM
-        (ngs_forensic.nomenclature_autostrdata b
-        LEFT JOIN ngs_forensic.markerautostrview c ON (((c.sequence = b.sequence)
-            AND (c.marker = b.marker))))
+        ngs_forensic.nomenclature_autostrdata b
+        LEFT JOIN ngs_forensic.marker_auto_strview c 
+            ON c.sequence = b.sequence
+            AND c.marker = b.marker
     ORDER BY b.sample_name;
 
- CREATE VIEW ngs_forensic.nomenclature_autostrdata_flankingreg 
+ CREATE VIEW ngs_forensic.nomenclature_auto_strdata_flankingreg 
 AS 
   SELECT t.sample_name   AS sample_name, 
          t.marker        AS marker, 
@@ -455,7 +638,7 @@ AS
   WHERE  t.present_in_illumina = 'yes' 
           OR t.present_in_illumina = 'no';  
           
- CREATE VIEW ngs_forensic.nomenclature_autostrdata_family_tree 
+ CREATE VIEW ngs_forensic.nomenclature_auto_strdata_family_tree 
 AS 
   SELECT t.sample_name   AS sample_name, 
          t.marker        AS marker, 
@@ -485,7 +668,7 @@ AS
   WHERE  t.present_in_illumina = 'yes' 
           OR t.present_in_illumina = 'no'; 
  
- CREATE VIEW ngs_forensic.nomen_freq_autostrdata_flankingreg AS
+ CREATE VIEW ngs_forensic.nomen_freq_auto_strdata_flankingreg AS
     SELECT 
         b.sample_name AS sample_name,
         b.marker AS marker,
@@ -500,12 +683,12 @@ AS
         c.count_seq AS count_seq,
         c.frequency AS frequency
     FROM
-        (ngs_forensic.nomenclature_autostrdata_flankingreg b
-        LEFT JOIN ngs_forensic.markerautostrview_flankingreg c ON (((c.sequence = b.sequence)
+        (ngs_forensic.nomenclature_auto_strdata_flankingreg b
+        LEFT JOIN ngs_forensic.marker_auto_strview_flankingreg c ON (((c.sequence = b.sequence)
             AND (c.marker = b.marker))))
     ORDER BY b.sample_name;
  
-  CREATE VIEW ngs_forensic.nomen_freq_autostrdata_family_tree AS
+  CREATE VIEW ngs_forensic.nomen_freq_auto_strdata_family_tree AS
     SELECT 
         b.sample_name AS sample_name,
         b.marker AS marker,
@@ -520,8 +703,8 @@ AS
         c.count_seq AS count_seq,
         c.frequency AS frequency
     FROM
-        (ngs_forensic.nomenclature_autostrdata_family_tree b
-        LEFT JOIN ngs_forensic.markerautostrview_flankingreg c ON (((c.sequence = b.sequence)
+        (ngs_forensic.nomenclature_auto_strdata_family_tree b
+        LEFT JOIN ngs_forensic.marker_auto_strview_flankingreg c ON (((c.sequence = b.sequence)
             AND (c.marker = b.marker))))
     ORDER BY b.sample_name;
     
@@ -547,63 +730,12 @@ AS
                 a.PubMed_Nomenclature_AutoSTR_Illumina_longseq AS PubMed_Nomenclature_AutoSTR_Illumina_longseq,
                 a.PubMed_ID AS PubMed_ID
         FROM
-            ngs_forensic.nomenclature_markerautostrview a
+            ngs_forensic.nomenclature_marker_auto_strview a
         WHERE
             ISNULL(a.seq_name))) nm
         JOIN ngs_forensic.autostrdata ad ON (((nm.sequence = ad.sequence)
             AND (nm.marker = ad.marker))))
     ORDER BY nm.marker , nm.allele;
-    
-              
-
-create view ngs_forensic.markery_strview_flankingreg 
-AS 
-  SELECT m.marker, 
-         m.allele, 
-         m.SEQUENCE, 
-         m. avg_no_reads, 
-         m.count_seq, 
-         m.count_seq / n.sum_count_seq AS frequency 
-  FROM   (SELECT DISTINCT ( a.SEQUENCE ), 
-                          a.allele, 
-                          a.marker, 
-                          t.count_seq, 
-                          t.avg_no_reads 
-          FROM   y_strdata_flankingreg AS a 
-                 join (SELECT SEQUENCE, 
-                              marker, 
-                              Count(SEQUENCE) AS count_seq, 
-                              Avg(no_reads)   AS avg_no_reads 
-                       FROM   y_strdata_flankingreg 
-                       GROUP  BY SEQUENCE, 
-                                 marker) AS t 
-                   ON a.SEQUENCE = t.SEQUENCE 
-                      AND a.marker = t.marker 
-          WHERE  a.ce_validation = 'validated_CE' 
-                  OR a.ce_validation = 'validated_no_reads') AS m 
-         join (SELECT marker, 
-                      SUM(count_seq) AS sum_count_seq 
-               FROM   (SELECT DISTINCT ( a.SEQUENCE ), 
-                                       a.allele, 
-                                       a.marker, 
-                                       t.count_seq, 
-                                       t.avg_no_reads 
-                       FROM   y_strdata_flankingreg AS a 
-                              join (SELECT SEQUENCE, 
-                                           marker, 
-                                           Count(SEQUENCE) AS count_seq, 
-                                           Avg(no_reads)   AS avg_no_reads 
-                                    FROM   y_strdata_flankingreg 
-                                    GROUP  BY SEQUENCE, 
-                                              marker) AS t 
-                                ON a.SEQUENCE = t.SEQUENCE 
-                                   AND a.marker = t.marker 
-                       WHERE  a.ce_validation = 'validated_CE' 
-                               OR a.ce_validation = 'validated_no_reads') AS x 
-               GROUP  BY marker) AS n 
-           ON m.marker = n.marker 
-  ORDER  BY marker, 
-            allele; 
 
 
 
@@ -620,18 +752,18 @@ CREATE VIEW ngs_forensic.freq_y_strdata_flankingreg AS
         c.count_seq AS count_seq,
         c.frequency AS frequency
     FROM
-        (ngs_forensic.markery_strview_flankingreg c
+        (ngs_forensic.marker_y_strview_flankingreg c
         LEFT JOIN ngs_forensic.y_strdata_flankingreg b ON (((c.sequence = b.sequence)
             AND (c.marker = b.marker))))
     ORDER BY b.sample_name;
 
---- create table ngs_forensic.markersautostr(
-id INT NOT NULL AUTO_INCREMENT,
-marker varchar(50) NOT NULL,
-allele varchar(50),
-sequence varchar(500),
-avg_no_reads decimal(10,1),
-count_seq int,
-frequency decimal (5,4),
-PRIMARY KEY (id)
-);
+-- create table ngs_forensic.markersautostr(
+-- id INT NOT NULL AUTO_INCREMENT,
+-- imarker varchar(50) NOT NULL,
+-- iallele varchar(50),
+-- isequence varchar(500),
+-- iavg_no_reads decimal(10,1),
+-- icount_seq int,
+-- irequency decimal (5,4),
+-- iPRIMARY KEY (id)
+-- );
