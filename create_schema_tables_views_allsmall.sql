@@ -668,7 +668,7 @@ AS
   WHERE  t.present_in_illumina = 'yes' 
           OR t.present_in_illumina = 'no'; 
  
- CREATE VIEW ngs_forensic.nomen_freq_auto_strdata_flankingreg AS
+ CREATE VIEW ngs_forensic.nomen_freq_autostrdata_flankingreg AS
     SELECT 
         b.sample_name AS sample_name,
         b.marker AS marker,
@@ -688,7 +688,7 @@ AS
             AND (c.marker = b.marker))))
     ORDER BY b.sample_name;
  
-  CREATE VIEW ngs_forensic.nomen_freq_auto_strdata_family_tree AS
+  CREATE VIEW ngs_forensic.nomen_freq_autostrdata_family_tree AS
     SELECT 
         b.sample_name AS sample_name,
         b.marker AS marker,
